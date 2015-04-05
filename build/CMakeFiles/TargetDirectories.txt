@@ -1,2 +1,0 @@
-/home/shiv/Dev/battle-bots/build/CMakeFiles/world.dir
-/home/shiv/Dev/battle-bots/build/CMakeFiles/yay.dir
