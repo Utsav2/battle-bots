@@ -1,10 +1,11 @@
-from  config_tests import *
+from  config_tests import TestException, ok 
 from  libworld import World
 
 try:
 	p = World()
 	p.set("lol")
 	assert p.greet() == "lol"
-except:
-	print fail("something went wrong here :-| ")
+except Exception as e:
+	raise TestException(e, "")
+
 print ok("constructor test set passed")

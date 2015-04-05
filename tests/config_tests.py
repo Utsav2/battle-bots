@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -16,3 +19,15 @@ def fail(string):
 	
 def ok(string):
 	return bcolors.OKBLUE + string + bcolors.ENDC
+
+class TestException(Exception):
+	def __init__(self,base_error, message, *args):
+		parent = base_error.message
+		_, _, tb = sys.exc_info()
+    		traceback.print_tb(tb) # Fixed format
+		if parent == "":
+    			tb_info = traceback.extract_tb(tb)
+    			filename, line, func, text = tb_info[-1]
+	    		parent = 'An error occurred on line {} in statement:\n\t{}'.format(line, text)
+		super(TestException, self).__init__("\n" + fail(parent  + "\n" +  message))
+
