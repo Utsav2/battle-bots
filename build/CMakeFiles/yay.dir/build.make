@@ -31,11 +31,14 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
+# Escaping for special characters.
+EQUALS = =
+
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/utsav/projects/src
+CMAKE_SOURCE_DIR = /home/shiv/Dev/battle-bots
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/utsav/projects/src/build
+CMAKE_BINARY_DIR = /home/shiv/Dev/battle-bots/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/yay.dir/depend.make
@@ -48,17 +51,17 @@ include CMakeFiles/yay.dir/flags.make
 
 CMakeFiles/yay.dir/yay.cpp.o: CMakeFiles/yay.dir/flags.make
 CMakeFiles/yay.dir/yay.cpp.o: ../yay.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/utsav/projects/src/build/CMakeFiles $(CMAKE_PROGRESS_1)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/shiv/Dev/battle-bots/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/yay.dir/yay.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/yay.dir/yay.cpp.o -c /home/utsav/projects/src/yay.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/yay.dir/yay.cpp.o -c /home/shiv/Dev/battle-bots/yay.cpp
 
 CMakeFiles/yay.dir/yay.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/yay.dir/yay.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/utsav/projects/src/yay.cpp > CMakeFiles/yay.dir/yay.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/shiv/Dev/battle-bots/yay.cpp > CMakeFiles/yay.dir/yay.cpp.i
 
 CMakeFiles/yay.dir/yay.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/yay.dir/yay.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/utsav/projects/src/yay.cpp -o CMakeFiles/yay.dir/yay.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/shiv/Dev/battle-bots/yay.cpp -o CMakeFiles/yay.dir/yay.cpp.s
 
 CMakeFiles/yay.dir/yay.cpp.o.requires:
 .PHONY : CMakeFiles/yay.dir/yay.cpp.o.requires
@@ -77,8 +80,8 @@ yay_OBJECTS = \
 yay_EXTERNAL_OBJECTS =
 
 libyay.so: CMakeFiles/yay.dir/yay.cpp.o
-libyay.so: /usr/lib/libboost_python.so
 libyay.so: CMakeFiles/yay.dir/build.make
+libyay.so: /usr/lib/x86_64-linux-gnu/libboost_python.so
 libyay.so: CMakeFiles/yay.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX shared library libyay.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/yay.dir/link.txt --verbose=$(VERBOSE)
@@ -95,6 +98,6 @@ CMakeFiles/yay.dir/clean:
 .PHONY : CMakeFiles/yay.dir/clean
 
 CMakeFiles/yay.dir/depend:
-	cd /home/utsav/projects/src/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/utsav/projects/src /home/utsav/projects/src /home/utsav/projects/src/build /home/utsav/projects/src/build /home/utsav/projects/src/build/CMakeFiles/yay.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/shiv/Dev/battle-bots/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/shiv/Dev/battle-bots /home/shiv/Dev/battle-bots /home/shiv/Dev/battle-bots/build /home/shiv/Dev/battle-bots/build /home/shiv/Dev/battle-bots/build/CMakeFiles/yay.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/yay.dir/depend
 
