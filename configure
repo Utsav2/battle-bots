@@ -9,8 +9,8 @@ make clean
 cmake ../
 make
 	if [[ ":$PYTHONPATH:" != *":$DIR/build:"* ]]; then
-        echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.bashrc
-        echo "Please restart your bash to take effect!"  
+    	echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.bashrc
+    	echo "Please restart your bash to take effect!"  
 	else
 		echo "everything is done, $USER"
 	fi 
