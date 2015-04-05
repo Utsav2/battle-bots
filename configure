@@ -8,8 +8,9 @@ cmake clean ../
 make clean
 cmake ../
 make
-export PYTHONPATH=$DIR/build:$PATH
-if [ -n "$1" ]; then 
-	python ../python/$1
-fi 
-echo "everything is done, $USER"
+    if [[ ":$PYTHONPATH:" != *":$DIR/build:"* ]]; then
+        echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.bashrc
+        echo "Please restart your bash to take effect!"  
+	else
+		echo "everything is done, $USER"
+	fi 
