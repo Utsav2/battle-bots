@@ -35,14 +35,11 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
-# Escaping for special characters.
-EQUALS = =
-
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/shiv/Dev/battle-bots
+CMAKE_SOURCE_DIR = /home/utsav/projects/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/shiv/Dev/battle-bots/build
+CMAKE_BINARY_DIR = /home/utsav/projects/src/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -69,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/shiv/Dev/battle-bots/build/CMakeFiles /home/shiv/Dev/battle-bots/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/utsav/projects/src/build/CMakeFiles /home/utsav/projects/src/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/shiv/Dev/battle-bots/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/utsav/projects/src/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -111,6 +108,19 @@ yay/fast:
 	$(MAKE) -f CMakeFiles/yay.dir/build.make CMakeFiles/yay.dir/build
 .PHONY : yay/fast
 
+#=============================================================================
+# Target rules for targets named yay2
+
+# Build rule for target.
+yay2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 yay2
+.PHONY : yay2
+
+# fast build rule for target.
+yay2/fast:
+	$(MAKE) -f CMakeFiles/yay2.dir/build.make CMakeFiles/yay2.dir/build
+.PHONY : yay2/fast
+
 yay.o: yay.cpp.o
 .PHONY : yay.o
 
@@ -135,6 +145,30 @@ yay.cpp.s:
 	$(MAKE) -f CMakeFiles/yay.dir/build.make CMakeFiles/yay.dir/yay.cpp.s
 .PHONY : yay.cpp.s
 
+yay2.o: yay2.cpp.o
+.PHONY : yay2.o
+
+# target to build an object file
+yay2.cpp.o:
+	$(MAKE) -f CMakeFiles/yay2.dir/build.make CMakeFiles/yay2.dir/yay2.cpp.o
+.PHONY : yay2.cpp.o
+
+yay2.i: yay2.cpp.i
+.PHONY : yay2.i
+
+# target to preprocess a source file
+yay2.cpp.i:
+	$(MAKE) -f CMakeFiles/yay2.dir/build.make CMakeFiles/yay2.dir/yay2.cpp.i
+.PHONY : yay2.cpp.i
+
+yay2.s: yay2.cpp.s
+.PHONY : yay2.s
+
+# target to generate assembly for a file
+yay2.cpp.s:
+	$(MAKE) -f CMakeFiles/yay2.dir/build.make CMakeFiles/yay2.dir/yay2.cpp.s
+.PHONY : yay2.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -144,9 +178,13 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... yay"
+	@echo "... yay2"
 	@echo "... yay.o"
 	@echo "... yay.i"
 	@echo "... yay.s"
+	@echo "... yay2.o"
+	@echo "... yay2.i"
+	@echo "... yay2.s"
 .PHONY : help
 
 

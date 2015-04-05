@@ -13,9 +13,14 @@ IF(Boost_FOUND)
   SET(Boost_USE_MULTITHREADED ON)
   SET(Boost_USE_STATIC_RUNTIME OFF)
   FIND_PACKAGE(Boost 1.45.0 COMPONENTS python)
-
-  ADD_LIBRARY(yay SHARED yay.cpp)
-  TARGET_LINK_LIBRARIES(yay ${Boost_LIBRARIES})
+  file(GLOB SOURCES 
+    "*.cpp"
+  )
+  foreach(file ${SOURCES})
+    get_filename_component (name_without_extension ${file} NAME_WE)
+    ADD_LIBRARY("${name_without_extension}" SHARED "${file}")
+    TARGET_LINK_LIBRARIES("${name_without_extension}" ${Boost_LIBRARIES})
+  endforeach(file)
 ELSEIF(NOT Boost_FOUND)
   MESSAGE(FATAL_ERROR "Unable to find correct Boost version. Did you set BOOST_ROOT?")
 ENDIF()
