@@ -26,3 +26,6 @@ ompiled Object files
 *.exe
 *.out
 *.app
+
+#The CMakeCache cries
+build/CMakeCache.txt
