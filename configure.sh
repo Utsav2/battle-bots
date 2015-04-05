@@ -8,7 +8,8 @@ cmake clean ../
 make clean
 cmake ../
 make
+export PYTHONPATH=$DIR/build:$PATH
 if [ -n "$1" ]; then 
-	python $1
+	python ../python/$1
 fi 
 echo "everything is done, $USER"

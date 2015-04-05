@@ -29,3 +29,4 @@ ompiled Object files
 
 #The Nothing insode build needs to be committed cries
 build/*
+build/**

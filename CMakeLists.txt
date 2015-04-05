@@ -14,7 +14,7 @@ IF(Boost_FOUND)
   SET(Boost_USE_STATIC_RUNTIME OFF)
   FIND_PACKAGE(Boost 1.45.0 COMPONENTS python)
   file(GLOB SOURCES 
-    "*.cpp"
+    "native/*.cpp"
   )
   foreach(file ${SOURCES})
     get_filename_component (name_without_extension ${file} NAME_WE)
