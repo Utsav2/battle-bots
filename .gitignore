@@ -27,5 +27,5 @@ ompiled Object files
 *.out
 *.app
 
-#The CMakeCache cries
-build/CMakeCache.txt
+#The Nothing insode build needs to be committed cries
+build/*
