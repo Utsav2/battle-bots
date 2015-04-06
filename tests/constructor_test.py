@@ -4,7 +4,7 @@ from  libworld import World
 try:
 	p = World()
 	p.set("lol")
-	assert p.greet() == "lol2"
+	assert p.greet() == "lol"
 except Exception as e:
 	raise TestException(e, "")
 
