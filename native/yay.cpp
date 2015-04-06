@@ -2,7 +2,7 @@
 
 char const* yay()
 {
-  return "Hello friend!";
+  return "Hello friend !!!!";
 }
 
 BOOST_PYTHON_MODULE(libyay)
