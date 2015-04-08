@@ -1,8 +1,8 @@
 from  config_tests import TestException, ok, warning
 try:
-	import libtbtg
+	import libTurnBased
 
-	gc = libtbtg.TBT_game_core()
+	gc = libTurnBased.TB_core()
 	p1 = gc.generate_new_player()
 	p2 = gc.generate_new_player()
 

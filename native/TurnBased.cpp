@@ -2,38 +2,37 @@
 #include <vector>
 #include <iostream>
 
-using namespace boost::python;
 
 typedef int Player_id;
 
-class TBT_game_core;
+class TB_core;
 
-struct TBT_game_player
+struct TB_player
 {
-        TBT_game_player(Player_id p_id,TBT_game_core * core)
+        TB_player(Player_id p_id,TB_core * core)
         {
             this->p_id = p_id;
-            this->game_core = core;
+            this->core = core;
         }
 
         void do_turn(int hand);
         
         Player_id p_id;
-        TBT_game_core * game_core;
+        TB_core * core;
 };
 
-struct TBT_game_player_python
+struct TB_player_python
 {
-	static PyObject* convert(TBT_game_player const& p)
+	static PyObject* convert(TB_player const& p)
     {
 		return boost::python::incref(boost::python::object(p).ptr());
     }
 };
 
-class TBT_game_core
+class TB_core
 {
     public:
-        TBT_game_core()
+        TB_core()
         {
             last_player_id = -1;
             current_turn = new std::vector<int> ();
@@ -42,11 +41,11 @@ class TBT_game_core
 
         PyObject * generate_new_player()
         {
-            players.push_back(*(new TBT_game_player(++last_player_id, this)));
+            players.push_back(*(new TB_player(++last_player_id, this)));
             current_turn_done.push_back(false);
             score.push_back(0);
             current_turn->push_back(0);
-            return TBT_game_player_python::convert(players[last_player_id]);
+            return TB_player_python::convert(players[last_player_id]);
         }
 
         void inform_turn_done(Player_id id,int hand)
@@ -101,33 +100,34 @@ class TBT_game_core
 
         Player_id last_player_id;
         int current_turn_no;
-        std::vector<TBT_game_player> players;
+        std::vector<TB_player> players;
         std::vector<int> score; 
         std::vector<int> * current_turn;
         std::vector<bool> current_turn_done;
         std::vector< std::vector<int> > old_turns;
 };
 
-void TBT_game_player::do_turn(int hand)
+void TB_player::do_turn(int hand)
 {
-            this->game_core->inform_turn_done(this->p_id, hand);
+            this->core->inform_turn_done(this->p_id, hand);
 }
 
-BOOST_PYTHON_MODULE(libtbtg)
+using namespace boost::python;
+
+BOOST_PYTHON_MODULE(libTurnBased)
 {
 
 	boost::python::to_python_converter<
-	  TBT_game_player,
-	  TBT_game_player_python>();
+	  TB_player,
+	  TB_player_python>();
 
-    class_<TBT_game_core>("TBT_game_core")
-        .def("inform_turn_done", &TBT_game_core::inform_turn_done)
-        .def("get_winner", &TBT_game_core::get_winner)
-        .def("generate_new_player", &TBT_game_core::generate_new_player)
+    class_<TB_core>("TB_core")
+        .def("get_winner", &TB_core::get_winner)
+        .def("generate_new_player", &TB_core::generate_new_player)
     ;
 
-    class_<TBT_game_player>("TBT_game_player", init<Player_id,TBT_game_core*>())
-        .def("do_turn", &TBT_game_player::do_turn)
+    class_<TB_player>("TB_player", init<Player_id,TB_core*>())
+        .def("do_turn", &TB_player::do_turn)
     ;
 
 }
