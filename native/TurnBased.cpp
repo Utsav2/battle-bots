@@ -41,7 +41,7 @@ class TBT_game_core
         }
 
         PyObject * generate_new_player()
-        { 
+        {
             players.push_back(*(new TBT_game_player(++last_player_id, this)));
             current_turn_done.push_back(false);
             score.push_back(0);
@@ -76,12 +76,8 @@ class TBT_game_core
         void check_next_turn()
         {
             for (Player_id i=0;i<num_players();i++)
-            {
                 if (!current_turn_done[i])
-                {
                     return;
-                }
-            }
 
             do_next_turn();
 
