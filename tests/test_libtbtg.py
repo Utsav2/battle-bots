@@ -2,9 +2,8 @@ from  config_tests import TestException, ok, warning
 try:
 	import libTurnBased
 
-	gc = libTurnBased.TB_core()
-	p1 = gc.generate_new_player()
-	p2 = gc.generate_new_player()
+	gc = libTurnBased.TB_core(2)
+	p1, p2 = gc.get_player_list()
 
 	while (gc.get_winner() == -1):
 		p1.do_turn(0)
