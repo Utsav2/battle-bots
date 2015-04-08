@@ -32,3 +32,4 @@ ompiled Object files
 build/*
 build/**
 
+python/.idea/*
