@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/0.13.0/css/semantic.min.css">
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>rock paper scissors</title>
+</head>
+<script>
+    window.playernum = {{ n }};
+</script>
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.js"></script>
+<body bgcolor="#d3d3d3">
+<div class="ui grid form">
+{% for player in range(n) %}
+    <div class="four wide column">
+        <form id="code_form">
+          <div class="field">
+              <label>
+                  <textarea id ="code{{ player }}">player.do_turn(random.randint(0, 2))</textarea>
+              </label>
+          </div>
+        </form>
+    </div>
+{% endfor %}
+</div>
+<button type="submit" class="ui submit button" onclick="submit()">enter</button>
+<div class="ui segment compact" id = "gamebox">
+    hello
+</div>
+<script src = "../static/player.js"></script>
+</body>
+</html>
