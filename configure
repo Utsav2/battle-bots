@@ -7,7 +7,7 @@ cd build
 cmake clean ../
 make clean
 cmake ../
-make
+make VERBOSE=1
 	if [[ ":$PYTHONPATH:" != *":$DIR/build:"* ]]; then
 		echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.bashrc
 		echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.zshrc	
