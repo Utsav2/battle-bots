@@ -1,84 +1,34 @@
-#include <stdio.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>   
+#include <iostream>   
 
-#define WIDTH 640
-#define HEIGHT 480
-#define BPP 4
-#define DEPTH 32
+using namespace std;
 
-void setpixel(SDL_Surface *screen, int x, int y, Uint8 r, Uint8 g, Uint8 b)
-{
-    Uint32 *pixmem32;
-    Uint32 colour;  
+int main(int argc, char* argv[]){
+
+  SDL_Init(SDL_INIT_VIDEO); 
+  
+  // Declare display mode structure to be filled in.
+  SDL_DisplayMode current;
+
+  // Get current display mode of all displays.
+  for(int i=0; i < SDL_GetNumVideoDisplays(); ++i){
+  
+    int should_be_zero = SDL_GetCurrentDisplayMode(i, &current);
+    
+    if(should_be_zero != 0)
+      // In case of error...
+      cout << "Could not get display mode for video display #" << i << ": " << SDL_GetError();
+    
+    else 
+      // On success, print the current display mode.
+      cout << "Display #" << i 
+        << ": current display mode is " << current.w << 'x' << current.h 
+        << "px @ " << current.refresh_rate << "hz. \n";
+
+  }
  
-    colour = SDL_MapRGB( screen->format, r, g, b );
-  
-    pixmem32 = (Uint32*) screen->pixels  + y + x;
-    *pixmem32 = colour;
+  // Clean up and exit the program.
+  SDL_Quit();     
+  return 0;   
+ 
 }
-
-
-void DrawScreen(SDL_Surface* screen, int h)
-{ 
-    int x, y, ytimesw;
-  
-    if(SDL_MUSTLOCK(screen)) 
-    {
-        if(SDL_LockSurface(screen) < 0) return;
-    }
-
-    for(y = 0; y < screen->h; y++ ) 
-    {
-        ytimesw = y*screen->pitch/BPP;
-        for( x = 0; x < screen->w; x++ ) 
-        {
-            setpixel(screen, x, ytimesw, (x*x)/256+3*y+h, (y*y)/256+x+h, h);
-        }
-    }
-
-    if(SDL_MUSTLOCK(screen)) SDL_UnlockSurface(screen);
-  
-    SDL_Flip(screen); 
-}
-
-
-int main(int argc, char* argv[])
-{
-    SDL_Surface *screen;
-    SDL_Event event;
-  
-    int keypress = 0;
-    int h=0; 
-  
-    if (SDL_Init(SDL_INIT_VIDEO) < 0 ) return 1;
-   
-    if (!(screen = SDL_SetVideoMode(WIDTH, HEIGHT, DEPTH, 0)))
-    {
-        SDL_Quit();
-        return 1;
-    }
-  
-    while(!keypress) 
-    {
-         DrawScreen(screen,h++);
-         while(SDL_PollEvent(&event)) 
-         {      
-              switch (event.type) 
-              {
-                  case SDL_QUIT:
-                keypress = 1;
-                break;
-                  case SDL_KEYDOWN:
-                       keypress = 1;
-                       break;
-              }
-         }
-    }
-
-    SDL_Quit();
-  
-    return 0;
-}
-
-
-
