@@ -32,7 +32,7 @@ Path * create_path_simple(int width, int height)
 	Path * path = new Path();
 	for(int i = 0; i < width; i++)
 	{
-		path->add_coords(i, height/2 - 1);
+		path->add_coords(i, height/2);
 	}
 	return path;
 }

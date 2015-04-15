@@ -111,7 +111,7 @@ private:
         }
     
         const std::string resPath = "/home/utsav/projects/final_project/src/native/graphics/";
-        SDL_Texture *background = loadTexture(resPath + "grass.png", ren);
+        SDL_Texture *background = loadTexture(resPath + "fg.bmp", ren);
         SDL_Texture * tile = loadTexture(resPath + "tile.jpg", ren);
         SDL_Texture *image = loadTexture(resPath + "fg.bmp", ren);
 
@@ -126,7 +126,7 @@ private:
         fill_screen_tiles(rows, columns, path, ren, background, tile);
         SDL_RenderPresent(ren);
 
-        SDL_Delay(5000);
+        SDL_Delay(10000);
 
     }
 
