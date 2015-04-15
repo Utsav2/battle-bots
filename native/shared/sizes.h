@@ -1,0 +1,5 @@
+#define DIMENSION_COUNT 2
+#define DEFAULT_WIDTH 1000
+#define DEFAULT_HEIGHT 1000
+#define NUM_ROWS 10
+#define NUM_COLS 16
