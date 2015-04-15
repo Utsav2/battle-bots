@@ -7,13 +7,8 @@ cd build
 cmake clean ../
 make clean
 cmake ../
-make VERBOSE=1
-	if [[ ":$PYTHONPATH:" != *":$DIR/build:"* ]]; then
-		echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.bashrc
-		echo "export PYTHONPATH=$DIR/build:$PYTHONPATH" >> ~/.zshrc	
-		echo "Please restart your bash to take effect!"  
-	else
-		echo "everything is done, $USER"
-		echo "running tests"
-		../run_tests
-	fi 
+make -j 8
+echo "Please add /usr/share/lib and the build folder to your PYTHONPATH"  
+echo "running tests"		
+../run_tests
+ 

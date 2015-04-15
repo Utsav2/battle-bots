@@ -3,6 +3,6 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 export PYTHONPATH=$DIR/build:$PATH
 for filename in $DIR/tests/*.py; do
-	python "$filename"
+	python "$filename" -v
 	echo -e '----------------------------------------' 
 done
