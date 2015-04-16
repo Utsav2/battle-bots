@@ -10,6 +10,7 @@
 #include "shared/tdmap.hpp"
 #include "gui.cpp"
 #include "shared/sizes.h"
+#include "shared/sprite.hpp"
 
 TDMap::TDMap(int width, int height, Path * p)
 {
@@ -69,10 +70,23 @@ class TDGamecore
             tower->set_attacking(Coordinate(2, 5));
             tower->set_attacking(Coordinate(3, 5));
             tower->set_attacking(Coordinate(4, 5));
+            Sprite * sprite = new Sprite(path);
+            sprite->image_string = "sprite.png";
+            Coordinate c = sprite->get_coordinate();
+            map->at(c.x, c.y).sprites.push_back(sprite);
            	gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
            	gui->Update();
-           	std::cout <<"here" << std::endl;
+           	map->at(c.x, c.y).sprites.clear();
+           	sprite->move_to_next_position();
+           	c = sprite->get_coordinate();
+            map->at(c.x, c.y).sprites.push_back(sprite);          	
 			gui->Update();
+           	map->at(c.x, c.y).sprites.clear();
+           	sprite->move_to_next_position();
+           	c = sprite->get_coordinate();
+            map->at(c.x, c.y).sprites.push_back(sprite);          	
+			gui->Update();
+			
 		}
 
 		void generate_new_player()

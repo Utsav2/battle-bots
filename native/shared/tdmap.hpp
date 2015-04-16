@@ -3,6 +3,7 @@
 #include <boost/multi_array.hpp>
 #include "tower.cpp"
 #include "sizes.h"
+#include "sprite.hpp"
 
 class Player
 {
@@ -17,6 +18,7 @@ class Tile
 {
 	public:
 		Tower * tower;
+		std::vector<Sprite *> sprites;
 };
 
 typedef boost::multi_array<Tile, DIMENSION_COUNT> coordinate_type;

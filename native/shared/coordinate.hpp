@@ -12,9 +12,21 @@ class Coordinate
             this->y = y;
         }
 
-        bool operator==(const Coordinate& other)
+        bool operator==(const Coordinate& other) const
         {
             return (this->x == other.x) && (this->y == other.y) ;
+        }
+
+        bool operator<(const Coordinate& other) const
+        {
+                if (this->y == other.y)
+                {
+                    return this->x < other.x;
+                }
+                else
+                {
+                    return this->y < other.y;
+                }
         }
 };
 

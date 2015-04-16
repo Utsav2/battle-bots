@@ -8,8 +8,17 @@ Coordinate Sprite::get_coordinate()
 
 void Sprite::move_to_next_position()
 {
-    this->position
+    this->position++;
 }
+
+Coordinate Sprite::get_previous_position()
+{
+    if (this->position == 0)
+    	return get_coordinate();
+    else
+    	return this->path->get_coordinate(this->position-1);
+}
+
 
 Sprite::Sprite(Path * path)
 {
@@ -19,5 +28,5 @@ Sprite::Sprite(Path * path)
 
 bool Sprite::is_out_of_map()
 {
-    return this->position >= this->path.size();
+    return this->position >= this->path->size();
 }

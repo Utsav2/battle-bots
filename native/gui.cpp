@@ -6,6 +6,7 @@
 #include "shared/tdmap.hpp"
 #include "shared/sizes.h"
 #include <map>
+#include <set>
 #include <boost/foreach.hpp>
 #include "graphics/graphics_path.hpp"
 
@@ -31,7 +32,6 @@ private:
 
     if(loaded_textures.find(file) != loaded_textures.end())
     {
-
       texture = loaded_textures[file];
     }
     else
@@ -41,6 +41,7 @@ private:
       {
         logSDLError(std::cout, "LoadTexture");
       }
+      loaded_textures[file] = texture;
     }
     return texture;
   }  
@@ -71,6 +72,43 @@ private:
   int numrows;
   int numcols;
 
+
+  Coordinate screen_to_game_coord(Coordinate c)
+  {
+    return Coordinate(c.x / row_width, c.y / row_height);
+  }
+
+  void re_render()
+  {
+    std::set<Coordinate> s( diff_coords.begin(), diff_coords.end() );
+    diff_coords.assign( diff_coords.begin(), diff_coords.end() );
+
+    BOOST_FOREACH(Coordinate &screen_cord, diff_coords)
+    {
+    
+      Coordinate game_coord = screen_to_game_coord(screen_cord);
+
+      renderTexture(background, ren, screen_cord.x, screen_cord.y, row_width, row_height);
+
+      if(main_path->in(game_coord.x, game_coord.y))
+      {
+        renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
+      }
+
+      Tile& t = map->at(game_coord.x, game_coord.y);
+
+      if(t.tower != nullptr)
+      {
+        SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
+        if(texture != nullptr)
+        {
+          renderTexture(texture, ren, screen_cord.x, screen_cord.y, row_width, row_height);
+        }
+      } 
+
+    }
+  }
+
   void fill_screen_tiles()
   {
 
@@ -100,7 +138,6 @@ private:
           {
             renderTexture(texture, ren, current_cord.x, current_cord.y, row_width, row_height);
           }
-
         }
       }
     }
@@ -173,11 +210,15 @@ private:
 
     std::vector<anim_type> animations;
 
+    std::vector<Coordinate> diff_coords;
+
     // takes pixel coords.
     // pls take care while using.
-    void set_up_attack_animation(SDL_Texture * texture, Coordinate from, Coordinate to)
+    void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool addToDiff)
     {
         animations.push_back(anim_type(std::make_pair(texture, from), std::make_pair(from, to)));
+        diff_coords.push_back(from);
+        diff_coords.push_back(to);
     }
 
     void clear_attack_animations()
@@ -185,24 +226,26 @@ private:
         animations.clear();
     }
 
-    bool show_attack_animations()
+    #define ANIMATION_CONSTANT 10
+
+    bool show_animations()
     {
-        fill_screen_tiles();
+        re_render();
         BOOST_FOREACH(anim_type & animation, animations)
         {
             SDL_Texture * tex = animation.first.first;
             auto from_to = animation.second;
             int hdiff = from_to.second.x - from_to.first.x;
             int vdiff = from_to.second.y - from_to.first.y;
-            hdiff = hdiff/10;
-            vdiff = vdiff/10;
+            hdiff = hdiff/ANIMATION_CONSTANT;
+            vdiff = vdiff/ANIMATION_CONSTANT;
             animation.first.second.x += hdiff;
             animation.first.second.y += vdiff;
             renderTexture(tex, ren, animation.first.second.x, animation.first.second.y, row_width, row_height);
         }
-        if(++current_anim_frame < 10)
+        if(++current_anim_frame < ANIMATION_CONSTANT)
         {
-          SDL_Delay(20);
+          //SDL_Delay(1);
           return false;
         }
         return true;
@@ -223,18 +266,25 @@ private:
             BOOST_FOREACH(Coordinate c, t.tower->get_attack_tiles())
             {
               Coordinate screen_cord = game_to_screen_coord(c);
-              set_up_attack_animation(attack_texture, current_cord, screen_cord);
+              set_up_animation(attack_texture, current_cord, screen_cord, true);
             }
+          }
+          BOOST_FOREACH(Sprite * s, t.sprites)
+          {
+          
+            SDL_Texture * sprite_texture = loadTexture(s->image_string, ren);
+            Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
+            set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true);
           }
         }
       }
-      while(!show_attack_animations())
+      while(!show_animations())
       {
         SDL_RenderPresent(ren);
+        SDL_RenderPresent(ren);
       }
-      fill_screen_tiles();
+      re_render();
       SDL_RenderPresent(ren);
-      SDL_Delay(100);
       clear_attack_animations();
     }
 
