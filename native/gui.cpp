@@ -2,7 +2,7 @@
 #include "SDL_image.h"   
 #include <iostream>  
 #include <assert.h>
-#include "shared/path_creator.h"
+#include "shared/path_creator.hpp"
 #include "shared/tdmap.hpp"
 #include "shared/sizes.h"
 #include <map>
@@ -49,8 +49,8 @@ private:
   * the texture's width and height
   * @param tex The source texture we want to draw
   * @param ren The renderer we want to draw to
-  * @param x The x coordinate to draw to
-  * @param y The y coordinate to draw to
+  * @param x The x Coordinate to draw to
+  * @param y The y Coordinate to draw to
   */
   void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int rw, int rh)
   {
@@ -78,13 +78,13 @@ private:
       for(int j = 0; j < numcols; j++)
       {
 
-        coordinate screen_cord = game_to_screen_coord(coordinate(i, j));
+        Coordinate screen_cord = game_to_screen_coord(Coordinate(i, j));
 
-        renderTexture(background, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+        renderTexture(background, ren, screen_cord.x, screen_cord.y, row_width, row_height);
 
         if(main_path->in(i, j))
         {
-          renderTexture(tile, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+          renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
         }
 
         Tile& t = map->at(i, j);
@@ -93,11 +93,11 @@ private:
         {
           SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
 
-          coordinate current_cord = game_to_screen_coord(coordinate(i, j));
+          Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
 
           if(texture != nullptr)
           {
-            renderTexture(texture, ren, current_cord.first, current_cord.second, row_width, row_height);
+            renderTexture(texture, ren, current_cord.x, current_cord.y, row_width, row_height);
           }
 
         }
@@ -168,13 +168,13 @@ private:
         SDL_RenderPresent(ren);
     }
 
-    typedef std::pair<std::pair<SDL_Texture *, coordinate> , std::pair<coordinate, coordinate>> anim_type;
+    typedef std::pair<std::pair<SDL_Texture *, Coordinate> , std::pair<Coordinate, Coordinate>> anim_type;
 
     std::vector<anim_type> animations;
 
     // takes pixel coords.
     // pls take care while using.
-    void set_up_attack_animation(SDL_Texture * texture, coordinate from, coordinate to)
+    void set_up_attack_animation(SDL_Texture * texture, Coordinate from, Coordinate to)
     {
         animations.push_back(anim_type(std::make_pair(texture, from), std::make_pair(from, to)));
     }
@@ -191,13 +191,13 @@ private:
         {
             SDL_Texture * tex = animation.first.first;
             auto from_to = animation.second;
-            int hdiff = from_to.second.first - from_to.first.second;
-            int vdiff = from_to.second.second - from_to.first.second;
+            int hdiff = from_to.second.x - from_to.first.x;
+            int vdiff = from_to.second.y - from_to.first.y;
             hdiff = hdiff/10;
             vdiff = vdiff/10;
-            animation.first.second.first += hdiff;
-            animation.first.second.second += vdiff;
-            renderTexture(tex, ren, animation.first.second.first, animation.first.second.second, row_width, row_height);
+            animation.first.second.x += hdiff;
+            animation.first.second.y += vdiff;
+            renderTexture(tex, ren, animation.first.second.x, animation.first.second.y, row_width, row_height);
         }
         if(++current_anim_frame < 10)
         {
@@ -217,11 +217,11 @@ private:
           Tile& t = map->at(i, j);
           if(t.tower != nullptr)
           {
-            coordinate current_cord = game_to_screen_coord(coordinate(i, j));
+            Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
             SDL_Texture * attack_texture = loadTexture(t.tower->get_attack_image_string(), ren);
-            BOOST_FOREACH(coordinate c, t.tower->get_attack_tiles())
+            BOOST_FOREACH(Coordinate c, t.tower->get_attack_tiles())
             {
-              coordinate screen_cord = game_to_screen_coord(c);
+              Coordinate screen_cord = game_to_screen_coord(c);
               set_up_attack_animation(attack_texture, current_cord, screen_cord);
             }
           }
@@ -237,13 +237,13 @@ private:
       clear_attack_animations();
     }
 
-    coordinate game_to_screen_coord(coordinate game_coord)
+    Coordinate game_to_screen_coord(Coordinate game_coord)
     {
-      return coordinate(game_coord.first * row_width, game_coord.second * row_height);
+      return Coordinate(game_coord.x * row_width, game_coord.y * row_height);
     }
 
-    coordinate game_to_screen_coord(int x, int y)
+    Coordinate game_to_screen_coord(int x, int y)
     {
-      return game_to_screen_coord(coordinate(x, y));
+      return game_to_screen_coord(Coordinate(x, y));
     }
 };

@@ -1,43 +1,48 @@
-#include "path_creator.h"
+#include "path_creator.hpp"
 
 void Path::add_coords(int x, int y)
 {
-	assert(x >= 0 && y >= 0);
-	xcoords.push_back(x);
-	ycoords.push_back(y);
-	path_dict[std::make_pair(x, y)] = true;
+    this->add_coords(Coordinate(x,y));
 }
-int Path::x(size_t index)
+
+void Path::add_coords(Coordinate coord)
 {
-	assert(index < xcoords.size());
-	return xcoords[index];
+    this->coords.push_back(coord);
 }
-int Path::y(size_t index)
+
+Path::Path(std::vector<Coordinate> coords)
 {
-	assert(index < ycoords.size());
-	return ycoords[index];
+    this->coords = coords;
 }
+
+Path::Path(int width, int height)
+{
+	for(int i = 0; i < width; i++)
+	{
+		this->add_coords(i, height/2);
+	}
+}
+
 bool Path::in(int x, int y)
 {
-	return path_dict[std::make_pair(x, y)];
+    return in(Coordinate(x,y));
+}
+
+bool Path::in(Coordinate coord)
+{
+    for (size_t i=0;i<this->coords.size();++i)
+        if (coords[i] == coord)
+            return true;
+    return false;
 }
 
 size_t Path::size()
 {
-	return xcoords.size();
+	return coords.size();
 }
 
-Path * create_path_simple(int width, int height)
+Coordinate Path::get_coordinate(int index)
 {
-	Path * path = new Path();
-	for(int i = 0; i < width; i++)
-	{
-		path->add_coords(i, height/2);
-	}
-	return path;
+    return this->coords[index];
 }
 
-Path * create_path(int width, int height)
-{
-	return create_path_simple(width, height);
-}

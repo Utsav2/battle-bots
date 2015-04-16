@@ -6,7 +6,9 @@
 typedef int Player_id;
 
 class TB_core;
-
+/*
+The player struct used by players to communicate with the game core.
+*/
 struct TB_player
 {
         TB_player(Player_id p_id, TB_core * core)
@@ -14,14 +16,17 @@ struct TB_player
             this->p_id = p_id;
             this->core = core;
         }
-
-        void do_turn(int hand);
+        // Has been defined far below because of the way forward declarations work in C++.
+        void do_turn(int hand); 
         
         Player_id p_id;
         TB_core * core;
 };
 
-
+/*
+The actual "core". The players communicate with it.
+The game logic and state are in here
+*/
 class TB_core
 {
     public:
@@ -34,10 +39,10 @@ class TB_core
             	generate_new_player();
         }
 
+        // returns a python list of players.
         boost::python::list get_player_list()
         {
-		
-			boost::python::list ret;
+            boost::python::list ret;
 			for(size_t i = 0 ; i < players.size() ; i++)
 			{
 				ret.append(players[i]);
@@ -83,7 +88,10 @@ class TB_core
             current_turn->push_back(0);
         }
 
-
+        /*
+        See if we can proceed to the next turn.
+        And do so if we can.
+        */
         void check_next_turn()
         {
             for (Player_id i=0;i<num_players();i++)
@@ -98,9 +106,9 @@ class TB_core
         }
 
         /*
-        All the logic is in here.
-        *
-        */
+         * All the logic is in here.
+         *
+         */
         void do_next_turn()
         {
             for (Player_id i = 0;i<num_players();i++)
@@ -119,12 +127,19 @@ class TB_core
         std::vector< std::vector<int> > old_turns;
 };
 
+/*
+ * Lets the game core know what the player has decided to do.
+ */
 void TB_player::do_turn(int hand)
 {
             this->core->inform_turn_done(this->p_id, hand);
 }
 
 using namespace boost::python;
+
+/*
+ * Exposes selected classes, variable and functions to Python
+ */
 
 BOOST_PYTHON_MODULE(libTurnBased)
 {

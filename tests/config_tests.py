@@ -20,6 +20,13 @@ def fail(string):
 def ok(string):
 	return bcolors.OKBLUE + string + bcolors.ENDC
 
+def print_fatal_error(string):
+	print(fail(string))
+	exit()
+
+def print_success(string):
+	print ok(string)
+
 class TestException(Exception):
 	def __init__(self,base_error, message, *args):
 		parent = base_error.message
