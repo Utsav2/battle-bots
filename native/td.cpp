@@ -62,7 +62,7 @@ class TDGamecore
 
 		TDGamecore(int number_of_players, int width, int height)
 		{
-			Path * path = create_path(NUM_ROWS, NUM_COLS);
+			Path * path = new Path(NUM_ROWS, NUM_COLS);
             map = new TDMap(width, height, path);
             Tower * tower = new Tower();
             tower->set_image_string("tower.png");

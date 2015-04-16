@@ -2,7 +2,7 @@
 #include "SDL_image.h"   
 #include <iostream>  
 #include <assert.h>
-#include "shared/path_creator.h"
+#include "shared/path_creator.hpp"
 #include "shared/tdmap.hpp"
 #include "shared/sizes.h"
 #include <map>
@@ -47,8 +47,8 @@ private:
   * the texture's width and height
   * @param tex The source texture we want to draw
   * @param ren The renderer we want to draw to
-  * @param x The x coordinate to draw to
-  * @param y The y coordinate to draw to
+  * @param x The x Coordinate to draw to
+  * @param y The y Coordinate to draw to
   */
   void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int rw, int rh)
   {
@@ -77,13 +77,13 @@ private:
       for(int j = 0; j < numcols; j++)
       {
 
-        coordinate screen_cord = game_to_screen_coord(coordinate(i, j));
+        Coordinate screen_cord = game_to_screen_coord(Coordinate(i, j));
 
-        renderTexture(background, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+        renderTexture(background, ren, screen_cord.x, screen_cord.y, row_width, row_height);
 
         if(path->in(i, j))
         {
-          renderTexture(tile, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+          renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
         }
       }
     }
@@ -164,8 +164,8 @@ private:
 
             if(texture != nullptr)
             {
-              coordinate screen_cord = game_to_screen_coord(coordinate(i, j));
-              renderTexture(texture, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+              Coordinate screen_cord = game_to_screen_coord(Coordinate(i, j));
+              renderTexture(texture, ren, screen_cord.x, screen_cord.y, row_width, row_height);
             }
           }
         }
@@ -174,13 +174,13 @@ private:
       SDL_Delay(10000);
     }
 
-    coordinate game_to_screen_coord(coordinate game_coord)
+    Coordinate game_to_screen_coord(Coordinate game_coord)
     {
-      return coordinate(game_coord.first * row_width, game_coord.second * row_height);
+      return Coordinate(game_coord.x * row_width, game_coord.y * row_height);
     }
 
-    coordinate game_to_screen_coord(int x, int y)
+    Coordinate game_to_screen_coord(int x, int y)
     {
-      return game_to_screen_coord(coordinate(x, y));
+      return game_to_screen_coord(Coordinate(x, y));
     }
 };

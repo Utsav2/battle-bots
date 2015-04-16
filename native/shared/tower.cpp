@@ -56,10 +56,10 @@ bool Range::in_diagonal(int hdiff, int vdiff)
 {
 	return hdiff == vdiff && (hdiff * vdiff > 0 ? in_positive(hdiff, vdiff) : in_negative(hdiff, vdiff));
 }
-bool Range::in(coordinate a, coordinate b)
+bool Range::in(Coordinate a, Coordinate b)
 {
-	int hdiff = b.first - a.first;
-	int vdiff = b.second = a.second;
+	int hdiff = b.x - a.x;
+	int vdiff = b.y - a.y;
 	if(hdiff == 0 || vdiff == 0)
 	{
 		return in_simple(hdiff, vdiff);

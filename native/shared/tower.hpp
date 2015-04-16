@@ -2,8 +2,7 @@
 #define TOWER_H
 #include <iostream>
 #include <vector>
-
-typedef std::pair<int, int> coordinate;
+#include "coordinate.hpp"
 
 enum Direction { NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
@@ -22,7 +21,7 @@ class Range
 		Range(int);
 		void set_all(int);
 		void set_specific(Direction, int);
-		bool in(coordinate, coordinate);
+		bool in(Coordinate, Coordinate);
 };
 
 class Tower
