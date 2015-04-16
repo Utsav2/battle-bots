@@ -3,12 +3,14 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 set -e
 set -o pipefail
 cd $DIR
+echo "#define GRAPHICS_PATH \"$DIR/native/graphics/\"" > native/graphics/graphics_path.hpp
 cd build
 cmake clean ../
 make clean
 cmake ../
 make -j 8
+cd ..
 echo "Please add /usr/share/lib and the build folder to your PYTHONPATH"  
 echo "running tests"		
-../run_tests
+./run_tests
  

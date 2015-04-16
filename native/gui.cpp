@@ -7,6 +7,7 @@
 #include "shared/sizes.h"
 #include <map>
 #include <boost/foreach.hpp>
+#include "graphics/graphics_path.hpp"
 
 using namespace std;
 
@@ -120,7 +121,7 @@ private:
         current_anim_frame = 0;
         row_width = DEFAULT_WIDTH/rows;
         row_height = DEFAULT_HEIGHT/columns;
-        resPath = "/home/utsav/projects/final_project/src/native/graphics/";
+        resPath = GRAPHICS_PATH;
         numrows = rows;
         numcols = columns;
         this->map = map;

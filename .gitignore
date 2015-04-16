@@ -32,4 +32,5 @@ ompiled Object files
 build/*
 build/**
 
+native/graphics/graphics_path.hpp
 python/.idea/*
