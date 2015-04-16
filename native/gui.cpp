@@ -202,9 +202,10 @@ private:
           SDL_Quit();
           exit(1);
         }
-        
         fill_screen_tiles();
         SDL_RenderPresent(ren);
+        SDL_Delay(10000);        
+
     }
 
     typedef std::pair<std::pair<SDL_Texture *, Coordinate> , std::pair<Coordinate, Coordinate>> anim_type;
@@ -226,8 +227,6 @@ private:
     {
         animations.clear();
     }
-
-    #define ANIMATION_CONSTANT 10
 
     bool show_animations()
     {
