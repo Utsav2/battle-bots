@@ -281,7 +281,6 @@ private:
       while(!show_animations())
       {
         SDL_RenderPresent(ren);
-        SDL_RenderPresent(ren);
       }
       re_render();
       SDL_RenderPresent(ren);
