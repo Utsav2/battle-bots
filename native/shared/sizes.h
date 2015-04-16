@@ -3,3 +3,4 @@
 #define DEFAULT_HEIGHT 800
 #define NUM_ROWS 10
 #define NUM_COLS 10
+#define ANIMATION_CONSTANT 10
