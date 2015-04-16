@@ -1,5 +1,5 @@
 #define DIMENSION_COUNT 2
-#define DEFAULT_WIDTH 1600
+#define DEFAULT_WIDTH 800
 #define DEFAULT_HEIGHT 800
 #define NUM_ROWS 10
 #define NUM_COLS 10

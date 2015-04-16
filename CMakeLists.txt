@@ -9,6 +9,10 @@ ENDIF()
 set(SDL_CFLAGS -lSDL2 `sdl2-config --cflags --libs`)
 string (REPLACE ";" " " SDL_CFLAG_STR "${SDL_CFLAGS}")
 
+add_definitions(
+    -Wfatal-errors
+    )
+
 FIND_PACKAGE(Boost 1.45.0)
 IF(Boost_FOUND)
   INCLUDE(FindPkgConfig)

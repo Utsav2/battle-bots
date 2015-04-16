@@ -1,6 +1,7 @@
-#ifndef TDMAP_H
-#define TDMAP_H
+#ifndef TDMAP_HPP
+#define TDMAP_HPP
 #include <boost/multi_array.hpp>
+#include "tower.cpp"
 #include "sizes.h"
 
 class Player
@@ -14,7 +15,8 @@ class Player
 
 class Tile
 {
-
+	public:
+		Tower * tower;
 };
 
 typedef boost::multi_array<Tile, DIMENSION_COUNT> coordinate_type;
@@ -22,13 +24,15 @@ typedef boost::array<coordinate_type::index, DIMENSION_COUNT> Position;
 
 class TDMap
 {
-private:
-	coordinate_type coordinates;
-	Position dimensions;
+	private:
+		coordinate_type coordinates;
+		Position dimensions;
+		Path * path;
 
-public:
-	TDMap(int width, int height);
-	Tile& at(int row, int column);
+	public:
+		TDMap(int width, int height, Path * path);
+		Tile& at(int row, int column);
+		bool set_tower_at(int row, int column, Tower * tower);
 };
 
 #endif

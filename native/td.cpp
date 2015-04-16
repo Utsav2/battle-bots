@@ -13,14 +13,13 @@
 
 
 
-	//a 2d array
-
-TDMap::TDMap(int width, int height)
+TDMap::TDMap(int width, int height, Path * p)
 {
-	assert(width > 0 && height > 0);
+	assert(width > 0 && height > 0 && p != nullptr);
 	dimensions[0] = width;
 	dimensions[1] = height;
 	coordinates.resize(dimensions);
+	path = p;
 }
 
 /*
@@ -34,7 +33,18 @@ Tile& TDMap::at(int width, int height)
 	return coordinates(p);
 }
 
+bool TDMap::set_tower_at(int x, int y, Tower * tower)
+{
 
+	Tile &t = this->at(x, y);
+
+	if(t.tower != nullptr || path->in(x, y))
+	{	
+		return false;
+	}
+	t.tower = tower;
+	return true;
+}
 
 class TDGamecore
 {
@@ -52,12 +62,13 @@ class TDGamecore
 
 		TDGamecore(int number_of_players, int width, int height)
 		{
-			//while(number_of_players-- > 0)
-            //	generate_new_player();
-
 			Path * path = create_path(NUM_ROWS, NUM_COLS);
-            map = new TDMap(width, height);
+            map = new TDMap(width, height, path);
+            Tower * tower = new Tower();
+            tower->set_image_string("tower.png");
+            map->set_tower_at(3, 4, tower);
            	gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
+           	gui->Update();
 
 		}
 

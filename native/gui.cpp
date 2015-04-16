@@ -5,6 +5,7 @@
 #include "shared/path_creator.h"
 #include "shared/tdmap.hpp"
 #include "shared/sizes.h"
+#include <map>
 
 using namespace std;
 
@@ -18,13 +19,25 @@ private:
     os << msg << " error: " << SDL_GetError() << std::endl;
   }
   
+  std::map<std::string, SDL_Texture *> loaded_textures;
+  std::string resPath;
+
+
   SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
   {
-    SDL_Texture *texture = IMG_LoadTexture(ren, file.c_str());
-    if (texture == nullptr)
+    SDL_Texture *texture;
+
+    if(loaded_textures.find(file) != loaded_textures.end())
     {
-      logSDLError(std::cout, "LoadTexture");
-      std::cout<<file.c_str()<<std::endl;
+      texture = loaded_textures[file];
+    }
+    else
+    {
+      texture = IMG_LoadTexture(ren, (resPath + file).c_str());
+      if (texture == nullptr)
+      {
+        logSDLError(std::cout, "LoadTexture");
+      }
     }
     return texture;
   }  
@@ -50,22 +63,27 @@ private:
   }
 
 
+
+  int row_width;
+  int row_height;
+  SDL_Renderer * ren;
+
+
   void fill_screen_tiles(int numrows, int numcols, Path * path, SDL_Renderer *ren, SDL_Texture *background, SDL_Texture * tile)
   {
 
-    int row_width = DEFAULT_WIDTH/numrows;
-    int row_height = DEFAULT_HEIGHT/numcols;
     for(int i = 0; i < numrows; i++)
     {
       for(int j = 0; j < numcols; j++)
       {
+
+        coordinate screen_cord = game_to_screen_coord(coordinate(i, j));
+
+        renderTexture(background, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+
         if(path->in(i, j))
         {
-          renderTexture(tile, ren, i * row_width, j * row_height, row_width, row_height);
-        }
-        else
-        {
-          renderTexture(background, ren, i * row_width, j * row_height, row_width, row_height);
+          renderTexture(tile, ren, screen_cord.first, screen_cord.second, row_width, row_height);
         }
       }
     }
@@ -79,11 +97,14 @@ private:
     {
 
         assert(rows > 0 && columns > 0 && path != nullptr && map != nullptr);
-	IMG_Init(IMG_INIT_PNG);
+
+        row_width = DEFAULT_WIDTH/rows;
+        row_height = DEFAULT_HEIGHT/columns;
+        resPath = "/home/utsav/projects/final_project/src/native/graphics/";
+
         this->map = map;
 
         SDL_Window *win;
-        SDL_Renderer *ren;
 
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         {
@@ -111,11 +132,10 @@ private:
           exit(1);
         }
     
-        const std::string resPath = "/home/shiv/Programming/battle-bots/native/graphics/";
-        SDL_Texture *background = loadTexture(resPath + "fg.bmp", ren);
-        SDL_Texture * tile = loadTexture(resPath + "tile.jpg", ren);
-        SDL_Texture *image = loadTexture(resPath + "grass.png", ren);
-        
+        SDL_Texture *background = loadTexture("grass.png", ren);
+        SDL_Texture * tile = loadTexture("tile.png", ren);
+        SDL_Texture *image = loadTexture("fg.bmp", ren);
+
         if (background == nullptr || image == nullptr || tile == nullptr)
             {
           logSDLError(std::cout, "Getting Images");
@@ -126,13 +146,41 @@ private:
         
         fill_screen_tiles(rows, columns, path, ren, background, tile);
         SDL_RenderPresent(ren);
-
-        SDL_Delay(10000);
-
     }
 
     void Update()
     {
 
+      for(int i = 0; i < NUM_ROWS; i++)
+      {
+        for(int j = 0; j < NUM_COLS; j++)
+        {
+
+          Tile& t = map->at(i, j);
+
+          if(t.tower != nullptr)
+          {
+            SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
+
+            if(texture != nullptr)
+            {
+              coordinate screen_cord = game_to_screen_coord(coordinate(i, j));
+              renderTexture(texture, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+            }
+          }
+        }
+      }
+      SDL_RenderPresent(ren);
+      SDL_Delay(10000);
+    }
+
+    coordinate game_to_screen_coord(coordinate game_coord)
+    {
+      return coordinate(game_coord.first * row_width, game_coord.second * row_height);
+    }
+
+    coordinate game_to_screen_coord(int x, int y)
+    {
+      return game_to_screen_coord(coordinate(x, y));
     }
 };
