@@ -11,8 +11,6 @@
 #include "gui.cpp"
 #include "shared/sizes.h"
 
-
-
 TDMap::TDMap(int width, int height, Path * p)
 {
 	assert(width > 0 && height > 0 && p != nullptr);
@@ -66,10 +64,15 @@ class TDGamecore
             map = new TDMap(width, height, path);
             Tower * tower = new Tower();
             tower->set_image_string("tower.png");
+            tower->set_attack_image_string("arrow.png");
             map->set_tower_at(3, 4, tower);
+            tower->set_attacking(coordinate(3, 5));
+            tower->set_attacking(coordinate(4, 5));
+            tower->set_attacking(coordinate(5, 5));
            	gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
            	gui->Update();
-
+           	std::cout <<"here" << std::endl;
+			gui->Update();
 		}
 
 		void generate_new_player()

@@ -59,7 +59,7 @@ bool Range::in_diagonal(int hdiff, int vdiff)
 bool Range::in(coordinate a, coordinate b)
 {
 	int hdiff = b.first - a.first;
-	int vdiff = b.second = a.second;
+	int vdiff = b.second - a.second;
 	if(hdiff == 0 || vdiff == 0)
 	{
 		return in_simple(hdiff, vdiff);
@@ -83,4 +83,30 @@ void Tower::set_image_string(std::string image_string)
 std::string Tower::get_image_string()
 {
 	return _image_string;
+}
+
+void Tower::set_attack_image_string(std::string attack_image_string)
+{
+	_attack_image_string = attack_image_string;
+}
+
+std::string Tower::get_attack_image_string()
+{
+	return _attack_image_string;
+}
+
+//doesnt do any error checking. call with caution
+void Tower::set_attacking(coordinate location)
+{
+	attacking_tiles.push_back(location);
+}
+
+void Tower::remove_attack_tile(coordinate location)
+{
+	attacking_tiles.erase(std::remove(attacking_tiles.begin(), attacking_tiles.end(), location), attacking_tiles.end());
+}
+
+std::vector<coordinate>& Tower::get_attack_tiles()
+{
+	return attacking_tiles;
 }

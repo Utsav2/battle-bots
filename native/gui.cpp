@@ -6,6 +6,7 @@
 #include "shared/tdmap.hpp"
 #include "shared/sizes.h"
 #include <map>
+#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -29,6 +30,7 @@ private:
 
     if(loaded_textures.find(file) != loaded_textures.end())
     {
+
       texture = loaded_textures[file];
     }
     else
@@ -58,18 +60,17 @@ private:
     dst.y = y;
     dst.w = rw;
     dst.h = rh;
-    //Query the texture to get its width and height to use
     SDL_RenderCopy(ren, tex, NULL, &dst);
   }
-
-
 
   int row_width;
   int row_height;
   SDL_Renderer * ren;
+  Path * main_path;
+  int numrows;
+  int numcols;
 
-
-  void fill_screen_tiles(int numrows, int numcols, Path * path, SDL_Renderer *ren, SDL_Texture *background, SDL_Texture * tile)
+  void fill_screen_tiles()
   {
 
     for(int i = 0; i < numrows; i++)
@@ -81,9 +82,24 @@ private:
 
         renderTexture(background, ren, screen_cord.first, screen_cord.second, row_width, row_height);
 
-        if(path->in(i, j))
+        if(main_path->in(i, j))
         {
           renderTexture(tile, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+        }
+
+        Tile& t = map->at(i, j);
+
+        if(t.tower != nullptr)
+        {
+          SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
+
+          coordinate current_cord = game_to_screen_coord(coordinate(i, j));
+
+          if(texture != nullptr)
+          {
+            renderTexture(texture, ren, current_cord.first, current_cord.second, row_width, row_height);
+          }
+
         }
       }
     }
@@ -91,6 +107,9 @@ private:
   }
 
   TDMap * map;
+  int current_anim_frame;
+  SDL_Texture * tile;
+  SDL_Texture * background;
 
   public:
     GUI(int rows, int columns, Path * path, TDMap * map)
@@ -98,13 +117,15 @@ private:
 
         assert(rows > 0 && columns > 0 && path != nullptr && map != nullptr);
 
+        current_anim_frame = 0;
         row_width = DEFAULT_WIDTH/rows;
         row_height = DEFAULT_HEIGHT/columns;
-        resPath = "/home/shiv/Programming/battle-bots/native/graphics/";
-
+        resPath = "/home/utsav/projects/final_project/src/native/graphics/";
+        numrows = rows;
+        numcols = columns;
         this->map = map;
-
         SDL_Window *win;
+        main_path = path;
 
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         {
@@ -132,11 +153,10 @@ private:
           exit(1);
         }
     
-        SDL_Texture *background = loadTexture("grass.png", ren);
-        SDL_Texture * tile = loadTexture("tile.png", ren);
-        SDL_Texture *image = loadTexture("fg.bmp", ren);
+        background = loadTexture("grass.png", ren);
+        tile = loadTexture("tile.png", ren);
 
-        if (background == nullptr || image == nullptr || tile == nullptr)
+        if (background == nullptr || tile == nullptr)
         {
           logSDLError(std::cout, "Getting Images");
           //TODO cleanup
@@ -144,34 +164,77 @@ private:
           exit(1);
         }
         
-        fill_screen_tiles(rows, columns, path, ren, background, tile);
+        fill_screen_tiles();
         SDL_RenderPresent(ren);
+    }
+
+    typedef std::pair<std::pair<SDL_Texture *, coordinate> , std::pair<coordinate, coordinate>> anim_type;
+
+    std::vector<anim_type> animations;
+
+    // takes pixel coords.
+    // pls take care while using.
+    void set_up_attack_animation(SDL_Texture * texture, coordinate from, coordinate to)
+    {
+        animations.push_back(anim_type(std::make_pair(texture, from), std::make_pair(from, to)));
+    }
+
+    void clear_attack_animations()
+    {
+        animations.clear();
+    }
+
+    bool show_attack_animations()
+    {
+        fill_screen_tiles();
+        BOOST_FOREACH(anim_type & animation, animations)
+        {
+            SDL_Texture * tex = animation.first.first;
+            auto from_to = animation.second;
+            int hdiff = from_to.second.first - from_to.first.second;
+            int vdiff = from_to.second.second - from_to.first.second;
+            hdiff = hdiff/10;
+            vdiff = vdiff/10;
+            animation.first.second.first += hdiff;
+            animation.first.second.second += vdiff;
+            renderTexture(tex, ren, animation.first.second.first, animation.first.second.second, row_width, row_height);
+        }
+        if(++current_anim_frame < 10)
+        {
+          SDL_Delay(20);
+          return false;
+        }
+        return true;
     }
 
     void Update()
     {
-
+      current_anim_frame = 0;
       for(int i = 0; i < NUM_ROWS; i++)
       {
         for(int j = 0; j < NUM_COLS; j++)
         {
-
           Tile& t = map->at(i, j);
-
           if(t.tower != nullptr)
           {
-            SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
-
-            if(texture != nullptr)
+            coordinate current_cord = game_to_screen_coord(coordinate(i, j));
+            SDL_Texture * attack_texture = loadTexture(t.tower->get_attack_image_string(), ren);
+            BOOST_FOREACH(coordinate c, t.tower->get_attack_tiles())
             {
-              coordinate screen_cord = game_to_screen_coord(coordinate(i, j));
-              renderTexture(texture, ren, screen_cord.first, screen_cord.second, row_width, row_height);
+              coordinate screen_cord = game_to_screen_coord(c);
+              set_up_attack_animation(attack_texture, current_cord, screen_cord);
             }
           }
         }
       }
+      while(!show_attack_animations())
+      {
+        SDL_RenderPresent(ren);
+      }
+      fill_screen_tiles();
       SDL_RenderPresent(ren);
-      SDL_Delay(10000);
+      SDL_Delay(100);
+      clear_attack_animations();
     }
 
     coordinate game_to_screen_coord(coordinate game_coord)

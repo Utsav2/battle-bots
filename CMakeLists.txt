@@ -9,9 +9,6 @@ ENDIF()
 set(SDL_CFLAGS -lSDL2 `sdl2-config --cflags --libs`)
 string (REPLACE ";" " " SDL_CFLAG_STR "${SDL_CFLAGS}")
 
-add_definitions(
-    -Wfatal-errors
-    )
 
 FIND_PACKAGE(Boost 1.45.0)
 IF(Boost_FOUND)
@@ -40,7 +37,7 @@ ELSEIF(NOT Boost_FOUND)
 ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-  ADD_DEFINITIONS("-Wall -std=c++0x")
+  ADD_DEFINITIONS("-Wall -std=c++0x -Wfatal-errors -lboost_filesystem-mt -lboost_system")
 ELSE()
   MESSAGE(FATAL_ERROR "CMakeLists.txt has not been tested/written for your compiler.")
 ENDIF()
