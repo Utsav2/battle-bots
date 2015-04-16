@@ -24,6 +24,7 @@ private:
     if (texture == nullptr)
     {
       logSDLError(std::cout, "LoadTexture");
+      std::cout<<file.c_str()<<std::endl;
     }
     return texture;
   }  
@@ -78,7 +79,7 @@ private:
     {
 
         assert(rows > 0 && columns > 0 && path != nullptr && map != nullptr);
-
+	IMG_Init(IMG_INIT_PNG);
         this->map = map;
 
         SDL_Window *win;
@@ -110,13 +111,13 @@ private:
           exit(1);
         }
     
-        const std::string resPath = "/home/utsav/projects/final_project/src/native/graphics/";
+        const std::string resPath = "/home/shiv/Programming/battle-bots/native/graphics/";
         SDL_Texture *background = loadTexture(resPath + "fg.bmp", ren);
         SDL_Texture * tile = loadTexture(resPath + "tile.jpg", ren);
-        SDL_Texture *image = loadTexture(resPath + "fg.bmp", ren);
-
+        SDL_Texture *image = loadTexture(resPath + "grass.png", ren);
+        
         if (background == nullptr || image == nullptr || tile == nullptr)
-        {
+            {
           logSDLError(std::cout, "Getting Images");
           //TODO cleanup
           SDL_Quit();
