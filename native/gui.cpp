@@ -100,7 +100,7 @@ private:
 
         row_width = DEFAULT_WIDTH/rows;
         row_height = DEFAULT_HEIGHT/columns;
-        resPath = "/home/utsav/projects/final_project/src/native/graphics/";
+        resPath = "/home/shiv/Programming/battle-bots/native/graphics/";
 
         this->map = map;
 
