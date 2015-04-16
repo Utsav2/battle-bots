@@ -34,3 +34,4 @@ build/**
 
 native/graphics/graphics_path.hpp
 python/.idea/*
+svn-commit.tmp
