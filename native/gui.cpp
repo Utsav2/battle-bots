@@ -6,6 +6,7 @@
 #include "shared/tdmap.hpp"
 #include "shared/sizes.h"
 #include <map>
+#include <cmath>
 #include <set>
 #include <boost/foreach.hpp>
 #include "graphics/graphics_path.hpp"
@@ -201,9 +202,10 @@ private:
           SDL_Quit();
           exit(1);
         }
-        
         fill_screen_tiles();
         SDL_RenderPresent(ren);
+        SDL_Delay(10000);        
+
     }
 
     typedef std::pair<std::pair<SDL_Texture *, Coordinate> , std::pair<Coordinate, Coordinate>> anim_type;
@@ -226,8 +228,6 @@ private:
         animations.clear();
     }
 
-    #define ANIMATION_CONSTANT 10
-
     bool show_animations()
     {
         re_render();
@@ -239,13 +239,22 @@ private:
             int vdiff = from_to.second.y - from_to.first.y;
             hdiff = hdiff/ANIMATION_CONSTANT;
             vdiff = vdiff/ANIMATION_CONSTANT;
+            int extra_x = hdiff == 0 ? 0 : hdiff/std::abs(hdiff);
+            int extra_y = vdiff == 0 ? 0 : vdiff/std::abs(vdiff);  
+            Coordinate game_coord = screen_to_game_coord(animation.first.second);
+            Coordinate new_game_coord = Coordinate(game_coord.x + extra_x, game_coord.y + extra_y);
+            Coordinate new_game_coord2 = Coordinate(game_coord.x, game_coord.y + extra_y);
+            Coordinate new_game_coord3 = Coordinate(game_coord.x + extra_x, game_coord.y);
+            diff_coords.push_back(game_to_screen_coord(new_game_coord));
+            diff_coords.push_back(game_to_screen_coord(new_game_coord2));
+            diff_coords.push_back(game_to_screen_coord(new_game_coord3));
             animation.first.second.x += hdiff;
             animation.first.second.y += vdiff;
             renderTexture(tex, ren, animation.first.second.x, animation.first.second.y, row_width, row_height);
         }
         if(++current_anim_frame < ANIMATION_CONSTANT)
         {
-          //SDL_Delay(1);
+          SDL_Delay(10);
           return false;
         }
         return true;
@@ -283,6 +292,7 @@ private:
         SDL_RenderPresent(ren);
       }
       re_render();
+      SDL_Delay(300);
       SDL_RenderPresent(ren);
       clear_attack_animations();
     }

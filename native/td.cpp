@@ -67,9 +67,6 @@ class TDGamecore
             tower->set_image_string("tower.png");
             tower->set_attack_image_string("arrow.png");
             map->set_tower_at(3, 4, tower);
-            tower->set_attacking(Coordinate(2, 5));
-            tower->set_attacking(Coordinate(3, 5));
-            tower->set_attacking(Coordinate(4, 5));
             Sprite * sprite = new Sprite(path);
             sprite->image_string = "sprite.png";
             Coordinate c = sprite->get_coordinate();
@@ -84,7 +81,8 @@ class TDGamecore
            	map->at(c.x, c.y).sprites.clear();
            	sprite->move_to_next_position();
            	c = sprite->get_coordinate();
-            map->at(c.x, c.y).sprites.push_back(sprite);          	
+            map->at(c.x, c.y).sprites.push_back(sprite);  
+            tower->set_attacking(Coordinate(2, 5));
 			gui->Update();
 			
 		}
