@@ -6,6 +6,7 @@ class Coordinate
     public:
         int x;
         int y;
+
         Coordinate(int x,int y)
         {
             this->x = x;
@@ -19,15 +20,16 @@ class Coordinate
 
         bool operator<(const Coordinate& other) const
         {
-                if (this->y == other.y)
-                {
-                    return this->x < other.x;
-                }
-                else
-                {
-                    return this->y < other.y;
-                }
+            if (this->y == other.y)
+            {
+                return this->x < other.x;
+            }
+            else
+            {
+                return this->y < other.y;
+            }
         }
+
 };
 
 #endif

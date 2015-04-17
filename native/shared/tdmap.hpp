@@ -1,5 +1,6 @@
 #ifndef TDMAP_HPP
 #define TDMAP_HPP
+#include <boost/foreach.hpp>
 #include <boost/multi_array.hpp>
 #include "tower.cpp"
 #include "sizes.h"
@@ -14,27 +15,24 @@ class Player
 		}
 };
 
-class Tile
-{
-	public:
-		Tower * tower;
-		std::vector<Sprite *> sprites;
-};
-
-typedef boost::multi_array<Tile, DIMENSION_COUNT> coordinate_type;
-typedef boost::array<coordinate_type::index, DIMENSION_COUNT> Position; 
-
 class TDMap
 {
 	private:
-		coordinate_type coordinates;
-		Position dimensions;
-		Path * path;
+		std::vector<Sprite *> sprites;
+		std::vector<Tower *> towers;
+		Coordinate dimensions;
+		std::vector<Path *> paths;
 
 	public:
-		TDMap(int width, int height, Path * path);
-		Tile& at(int row, int column);
-		bool set_tower_at(int row, int column, Tower * tower);
+		TDMap(Coordinate dimensions, std::vector<Path *> paths);
+		TDMap(int width, int height, std::vector<Path *> paths);
+		std::vector<Sprite *> get_sprites_at(int row, int column);
+		std::vector<Sprite *> get_sprites_at(Coordinate c);
+		Tower * get_tower_at(Coordinate c);
+		Tower * get_tower_at(int row, int column);
+		bool add_tower(Tower * tower);
+		bool add_sprite(Sprite * sprite);
 };
 
+#include "tdmap.cpp"
 #endif

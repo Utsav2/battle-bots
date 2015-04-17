@@ -70,9 +70,9 @@ bool Range::in(Coordinate a, Coordinate b)
 	}
 }
 
-Tower::Tower()
+Tower::Tower(Coordinate location)
+	:location(location)
 {
-
 }
 
 void Tower::set_image_string(std::string image_string)
@@ -104,6 +104,11 @@ void Tower::set_attacking(Coordinate location)
 void Tower::remove_attack_tile(Coordinate location)
 {
 	attacking_tiles.erase(std::remove(attacking_tiles.begin(), attacking_tiles.end(), location), attacking_tiles.end());
+}
+
+Coordinate Tower::get_coordinate()
+{
+	return this->location;
 }
 
 std::vector<Coordinate>& Tower::get_attack_tiles()

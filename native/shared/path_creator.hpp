@@ -19,5 +19,5 @@ class Path
         bool in(Coordinate coord);
         Coordinate get_coordinate(int index);
 };
-
+#include "path_creator.cpp"
 #endif

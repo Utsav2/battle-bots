@@ -26,7 +26,6 @@ private:
   std::map<std::string, SDL_Texture *> loaded_textures;
   std::string resPath;
 
-
   SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
   {
     SDL_Texture *texture;
@@ -96,11 +95,11 @@ private:
         renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
       }
 
-      Tile& t = map->at(game_coord.x, game_coord.y);
+      Tower * tower = map->get_tower_at(game_coord);
 
-      if(t.tower != nullptr)
+      if(tower != nullptr)
       {
-        SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
+        SDL_Texture * texture = loadTexture(tower->get_image_string(), ren); 
         if(texture != nullptr)
         {
           renderTexture(texture, ren, screen_cord.x, screen_cord.y, row_width, row_height);
@@ -127,11 +126,11 @@ private:
           renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
         }
 
-        Tile& t = map->at(i, j);
+        Tower * tower = map->get_tower_at(i, j);
 
-        if(t.tower != nullptr)
+        if(tower != nullptr)
         {
-          SDL_Texture * texture = loadTexture(t.tower->get_image_string(), ren); 
+          SDL_Texture * texture = loadTexture(tower->get_image_string(), ren); 
 
           Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
 
@@ -267,18 +266,18 @@ private:
       {
         for(int j = 0; j < NUM_COLS; j++)
         {
-          Tile& t = map->at(i, j);
-          if(t.tower != nullptr)
+          Tower * tower = map->get_tower_at(i, j);
+          if(tower != nullptr)
           {
             Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
-            SDL_Texture * attack_texture = loadTexture(t.tower->get_attack_image_string(), ren);
-            BOOST_FOREACH(Coordinate c, t.tower->get_attack_tiles())
+            SDL_Texture * attack_texture = loadTexture(tower->get_attack_image_string(), ren);
+            BOOST_FOREACH(Coordinate c, tower->get_attack_tiles())
             {
               Coordinate screen_cord = game_to_screen_coord(c);
               set_up_animation(attack_texture, current_cord, screen_cord, true);
             }
           }
-          BOOST_FOREACH(Sprite * s, t.sprites)
+          BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
           {
           
             SDL_Texture * sprite_texture = loadTexture(s->image_string, ren);

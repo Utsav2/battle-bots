@@ -6,93 +6,52 @@
 #include <array>
 #include <iostream>
 #include <string>
-#include "shared/path_creator.cpp"
+#include "shared/path_creator.hpp"
 #include "shared/tdmap.hpp"
 #include "gui.cpp"
 #include "shared/sizes.h"
 #include "shared/sprite.hpp"
 
-TDMap::TDMap(int width, int height, Path * p)
-{
-	assert(width > 0 && height > 0 && p != nullptr);
-	dimensions[0] = width;
-	dimensions[1] = height;
-	coordinates.resize(dimensions);
-	path = p;
-}
-
-/*
-boost does range checking, so we dont need to do it
-we can think about it later.
-*/
-
-Tile& TDMap::at(int width, int height)
-{
-	Position p = {{width, height}};
-	return coordinates(p);
-}
-
-bool TDMap::set_tower_at(int x, int y, Tower * tower)
-{
-
-	Tile &t = this->at(x, y);
-
-	if(t.tower != nullptr || path->in(x, y))
-	{	
-		return false;
-	}
-	t.tower = tower;
-	return true;
-}
-
 class TDGamecore
 {
 
-	private:
-		std::vector<Player> players;
-		TDMap * map;
-		GUI * gui; 
+    private:
+        std::vector<Player> players;
+  		  TDMap * map;
+		    GUI * gui; 
 
-	public:
-		TDGamecore(int number_of_players)
-		{
-			TDGamecore(number_of_players, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-		}
+  	public:
+    		TDGamecore(int number_of_players)
+    		{
+    			TDGamecore(number_of_players, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    		}
 
-		TDGamecore(int number_of_players, int width, int height)
-		{
-			Path * path = new Path(NUM_ROWS, NUM_COLS);
-            map = new TDMap(width, height, path);
-            Tower * tower = new Tower();
+    		TDGamecore(int number_of_players, int width, int height)
+    		{
+      			Path * path = new Path(NUM_ROWS, NUM_COLS);
+            std::vector<Path *> paths {path} ;
+            map = new TDMap(width, height, paths);
+            Tower * tower = new Tower(Coordinate(3,4));
             tower->set_image_string("tower.png");
             tower->set_attack_image_string("arrow.png");
-            map->set_tower_at(3, 4, tower);
+            map->add_tower(tower);
             Sprite * sprite = new Sprite(path);
+            map->add_sprite(sprite);
             sprite->image_string = "sprite.png";
-            Coordinate c = sprite->get_coordinate();
-            map->at(c.x, c.y).sprites.push_back(sprite);
-           	gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
+            gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
            	gui->Update();
-           	map->at(c.x, c.y).sprites.clear();
            	sprite->move_to_next_position();
-           	c = sprite->get_coordinate();
-            map->at(c.x, c.y).sprites.push_back(sprite);          	
-			gui->Update();
-           	map->at(c.x, c.y).sprites.clear();
+           	gui->Update();
            	sprite->move_to_next_position();
-           	c = sprite->get_coordinate();
-            map->at(c.x, c.y).sprites.push_back(sprite);  
-            tower->set_attacking(Coordinate(2, 5));
-			gui->Update();
-			
-		}
+           	tower->set_attacking(Coordinate(2, 5));
+      			gui->Update();	
+  		  }
 
-		void generate_new_player()
+    		void generate_new_player()
         {
             players.push_back(*(new Player()));
         }
-
-};
+    };
 
 using namespace boost::python;
 

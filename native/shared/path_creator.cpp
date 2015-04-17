@@ -1,5 +1,3 @@
-#include "path_creator.hpp"
-
 void Path::add_coords(int x, int y)
 {
     this->add_coords(Coordinate(x,y));
@@ -45,4 +43,3 @@ Coordinate Path::get_coordinate(int index)
 {
     return this->coords[index];
 }
-

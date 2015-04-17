@@ -7,7 +7,7 @@
 class Sprite
 {
     private:
-        size_t position;
+        size_t pos_index;
         Path * path;
     public:
         Sprite(Path * path);

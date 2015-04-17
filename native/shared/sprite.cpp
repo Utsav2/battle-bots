@@ -3,30 +3,30 @@
 
 Coordinate Sprite::get_coordinate()
 {
-    return this->path->get_coordinate(this->position);
+    return this->path->get_coordinate(this->pos_index);
 }
 
 void Sprite::move_to_next_position()
 {
-    this->position++;
+    this->pos_index++;
 }
 
 Coordinate Sprite::get_previous_position()
 {
-    if (this->position == 0)
+    if (this->pos_index == 0)
     	return get_coordinate();
     else
-    	return this->path->get_coordinate(this->position-1);
+    	return this->path->get_coordinate(this->pos_index-1);
 }
 
 
 Sprite::Sprite(Path * path)
 {
     this->path = path;
-    this->position = 0;
+    this->pos_index = 0;
 }
 
 bool Sprite::is_out_of_map()
 {
-    return this->position >= this->path->size();
+    return this->pos_index >= this->path->size();
 }

@@ -32,9 +32,11 @@ class Tower
 		std::string _attack_image_string;
 		Range * range;
 		std::vector<Coordinate> attacking_tiles;
+		Coordinate location;
 
 	public:
-		Tower();
+		Tower(Coordinate location);
+		Coordinate get_coordinate();
 		void set_image_string(std::string);
 		std::string get_image_string();
 		void set_attack_image_string(std::string);
