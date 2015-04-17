@@ -14,21 +14,19 @@
 
 class TDGamecore
 {
-
     private:
         std::vector<Player> players;
-  		  TDMap * map;
-		    GUI * gui; 
+        TDMap * map;
+        GUI * gui; 
 
   	public:
-    		TDGamecore(int number_of_players)
-    		{
-    			TDGamecore(number_of_players, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-    		}
-
-    		TDGamecore(int number_of_players, int width, int height)
-    		{
-      			Path * path = new Path(NUM_ROWS, NUM_COLS);
+        TDGamecore(int number_of_players)
+        {
+            TDGamecore(number_of_players, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        }
+        TDGamecore(int number_of_players, int width, int height)
+        {
+            Path * path = new Path(NUM_ROWS, NUM_COLS);
             std::vector<Path *> paths {path} ;
             map = new TDMap(width, height, paths);
             Tower * tower = new Tower(Coordinate(3,4));
@@ -44,14 +42,14 @@ class TDGamecore
            	gui->Update();
            	sprite->move_to_next_position();
            	tower->set_attacking(Coordinate(2, 5));
-      			gui->Update();	
-  		  }
+            gui->Update();	
+        }
 
-    		void generate_new_player()
+        void generate_new_player()
         {
             players.push_back(*(new Player()));
         }
-    };
+};
 
 using namespace boost::python;
 

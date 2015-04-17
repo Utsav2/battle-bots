@@ -203,7 +203,7 @@ private:
         }
         fill_screen_tiles();
         SDL_RenderPresent(ren);
-        SDL_Delay(10000);        
+        SDL_Delay(1000);        
 
     }
 
