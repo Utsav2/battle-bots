@@ -27,7 +27,6 @@ class GUI
         SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
         {
             SDL_Texture *texture;
-
             if(loaded_textures.find(file) != loaded_textures.end())
             {
                 texture = loaded_textures[file];
