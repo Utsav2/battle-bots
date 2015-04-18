@@ -42,7 +42,12 @@ class TDGamecore
            	gui->Update();
            	sprite->move_to_next_position();
            	tower->set_attacking(Coordinate(2, 5));
-            gui->Update();	
+            gui->Update();
+            tower->remove_attack_tile(Coordinate(2, 5));
+            sprite->move_to_next_position();
+            tower->set_attacking(Coordinate(3, 5));
+            gui->Update();  
+	
         }
 
         void generate_new_player()

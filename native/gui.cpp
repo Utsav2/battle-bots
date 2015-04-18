@@ -81,7 +81,7 @@ private:
   void re_render()
   {
     std::set<Coordinate> s( diff_coords.begin(), diff_coords.end() );
-    diff_coords.assign( diff_coords.begin(), diff_coords.end() );
+    diff_coords.assign( s.begin(), s.end() );
 
     BOOST_FOREACH(Coordinate &screen_cord, diff_coords)
     {
