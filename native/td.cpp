@@ -36,7 +36,7 @@ class TDGamecore
             Sprite * sprite = new Sprite(path);
             map->add_sprite(sprite);
             sprite->image_string = "sprite.png";
-            gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
+            gui = new GUI(NUM_ROWS, NUM_COLS, paths, map);
            	gui->Update();
            	sprite->move_to_next_position();
            	gui->Update();
