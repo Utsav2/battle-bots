@@ -34,11 +34,11 @@ class TDGamecore
             Path * path = new Path(NUM_ROWS, NUM_COLS);
             std::vector<Path *> paths {path} ;
             map = new TDMap(width, height, paths);
-            Tower * tower = new Tower(Coordinate(2,4));
-            tower->set_image_string("tower.png");
-            tower->set_attack_image_string("arrow.png");
+            Spritesheet projectile ("projectile2.png", Coordinate(64, 64), 2);
+            std::vector<Coordinate> tower_cycles = {Coordinate(1, 1), Coordinate(0, 1), Coordinate(2, 0)};
+            Tower * tower = new Tower(Coordinate(2,4), "tower.png", &projectile, tower_cycles);
             map->add_tower(tower);
-            Spritesheet zombie ("zombie.png", Coordinate(128, 128));
+            Spritesheet zombie ("zombie.png", Coordinate(128, 128), 8);
             std::vector<Coordinate> cycles;
             for(int i = 5; i < 13; i++)
                 cycles.push_back(Coordinate(i, 5));
@@ -67,8 +67,28 @@ class TDGamecore
                 v.push_back(Coordinate(i, 5));
             sprite->set_new_cycles(v);
             gui->Update();  
+            Sprite * sprite2 = new Sprite(path, &zombie, cycles);
+            map->add_sprite(sprite2);
             map->remove_sprite(sprite);
-            gui->Update();  
+            gui->Update(); 
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+            sprite2->move_to_next_position();
+            gui->Update();
+
+
         }
 
         void generate_new_player()
