@@ -17,6 +17,9 @@ class GUI
     private:
         class Animation
         {
+            private:
+                size_t cycle_index;
+
             public:
                 GUI * gui;
                 SDL_Texture * texture;
@@ -24,11 +27,14 @@ class GUI
                 Coordinate from;
                 Coordinate to;
                 bool randomize;
-                Coordinate s_location;
+                std::vector<Coordinate> cycles;
                 Coordinate s_size;
 
-                Animation(GUI * gui, SDL_Texture * texture, Coordinate position, Coordinate from, Coordinate to, bool randomize, Coordinate s_location, Coordinate s_size) : 
-                    gui(gui), texture(texture), position(position), from(from), to(to), randomize(randomize), s_location(s_location), s_size(s_size){}
+                Animation(GUI * gui, SDL_Texture * texture, Coordinate position, Coordinate from, Coordinate to, bool randomize, std::vector<Coordinate>& cycles, Coordinate s_size) : 
+                    gui(gui), texture(texture), position(position), from(from), to(to), randomize(randomize), cycles(cycles), s_size(s_size)
+                    {
+                        cycle_index = 0;
+                    }
 
                 inline Coordinate get_extra_coord_displacement(int hdiff, int vdiff)
                 {
@@ -65,7 +71,11 @@ class GUI
                     add_to_diff_coords(game_coord, get_extra_coord_displacement(diffs.x, diffs.y));
                     position.x += diffs.x;
                     position.y += diffs.y;
-                    gui->render_texture(texture, gui->ren, position, s_location, s_size);
+                    gui->render_texture(texture, gui->ren, position, cycles[cycle_index++/8 ], s_size);
+                    if (cycle_index/8 >= cycles.size())
+                    {
+                        cycle_index = 0;
+                    }
                 }
         };
 
@@ -219,8 +229,8 @@ class GUI
 
         bool create_textures()
         {
-            background = load_texture("grass.png", ren);
-            tile = load_texture("tile.png", ren);
+            background = load_texture("grass_night.jpg", ren);
+            tile = load_texture("tile2.png", ren);
             return background != nullptr || tile != nullptr;
         }
 
@@ -260,12 +270,14 @@ class GUI
         {
             int w, h;
             SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-            set_up_animation(texture, from, to, randomize, Coordinate(0, 0), Coordinate(w, h));
+            std::vector<Coordinate> cycles;
+            cycles.push_back(Coordinate(0, 0));
+            set_up_animation(texture, from, to, randomize, cycles, Coordinate(w, h));
         }
 
-        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize, Coordinate s_location, Coordinate s_size)
+        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize, std::vector<Coordinate>& s_locations, Coordinate s_size)
         {
-            animations.push_back(Animation(this, texture, from, from, to, randomize, s_location, s_size));
+            animations.push_back(Animation(this, texture, from, from, to, randomize, s_locations, s_size));
             diff_coords.push_back(from);
             diff_coords.push_back(to);
         }
@@ -291,6 +303,21 @@ class GUI
             {
                 for(int j = 0; j < NUM_COLS; j++)
                 {
+                    BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
+                    {
+                        SDL_Texture * sprite_texture = load_texture(s->get_spritesheet()->get_file_name(), ren);
+                        if(s->is_attacked())
+                        {
+                            SDL_SetTextureColorMod(sprite_texture, 255, 128, 128);
+                        }
+                        else
+                        {
+                            SDL_SetTextureColorMod(sprite_texture, 255, 255, 255);                            
+                        }
+                        Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
+                        set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size());
+                    }
+
                     Tower * tower = map->get_tower_at(i, j);
                     if(tower != nullptr)
                     {
@@ -301,12 +328,6 @@ class GUI
                             Coordinate screen_cord = game_to_screen_coord(c);
                             set_up_animation(attack_texture, current_cord, screen_cord, false);
                         }
-                    }
-                    BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
-                    {
-                        SDL_Texture * sprite_texture = load_texture(s->get_spritesheet()->get_file_name(), ren);
-                        Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
-                        set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size());
                     }
                 }
             }

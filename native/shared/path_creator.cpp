@@ -15,7 +15,7 @@ Path::Path(std::vector<Coordinate> coords)
 
 Path::Path(int width, int height)
 {
-	for(int i = 0; i < width; i++)
+	for(int i = -1; i < width; i++)
 	{
 		this->add_coords(i, height/2);
 	}

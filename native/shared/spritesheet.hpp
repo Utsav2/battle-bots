@@ -8,6 +8,7 @@ class Spritesheet
 	private:
 		std::string file_name;
 		Coordinate box_size;
+		size_t sprite_number;
 	public:
     	Spritesheet(std::string file_name, Coordinate box_size);   
     	std::string get_file_name(); 

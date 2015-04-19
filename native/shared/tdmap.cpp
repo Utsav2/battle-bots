@@ -96,3 +96,8 @@ bool TDMap::add_sprite(Sprite * sprite)
 	this->sprites.push_back(sprite);
 	return true;
 }
+
+void TDMap::remove_sprite(Sprite * sprite)
+{
+	this->sprites.erase(std::remove(this->sprites.begin(), this->sprites.end(), sprite), this->sprites.end());
+}

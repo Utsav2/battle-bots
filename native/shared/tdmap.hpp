@@ -32,6 +32,7 @@ class TDMap
 		Tower * get_tower_at(int row, int column);
 		bool add_tower(Tower * tower);
 		bool add_sprite(Sprite * sprite);
+		void remove_sprite(Sprite * sprite);
 };
 
 #include "tdmap.cpp"
