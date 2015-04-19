@@ -10,23 +10,63 @@
 #include <set>
 #include <boost/foreach.hpp>
 #include "graphics/graphics_path.hpp"
+#include <stdlib.h>     
 
 class GUI
 {
-
     private:
         class Animation
         {
             public:
+                GUI * gui;
                 SDL_Texture * texture;
                 Coordinate position;
                 Coordinate from;
                 Coordinate to;
-                Animation(SDL_Texture * texture, Coordinate position, Coordinate from, Coordinate to) : 
-                    position(position), from(from), to(to)
-            {
-                this->texture = texture;
-            }
+                bool randomize;
+                Coordinate s_location;
+                Coordinate s_size;
+
+                Animation(GUI * gui, SDL_Texture * texture, Coordinate position, Coordinate from, Coordinate to, bool randomize, Coordinate s_location, Coordinate s_size) : 
+                    gui(gui), texture(texture), position(position), from(from), to(to), randomize(randomize), s_location(s_location), s_size(s_size){}
+
+                inline Coordinate get_extra_coord_displacement(int hdiff, int vdiff)
+                {
+                    int extra_x = hdiff == 0 ? 0 : hdiff/std::abs(hdiff);
+                    int extra_y = vdiff == 0 ? 0 : vdiff/std::abs(vdiff);  
+                    return Coordinate(extra_x, extra_y);
+                }
+
+               inline Coordinate get_animation_diff(Coordinate from, Coordinate to)
+                {
+                    int hdiff = to.x - from.x;
+                    int vdiff = to.y - from.y;
+                    hdiff = hdiff/ANIMATION_CONSTANT;
+                    vdiff = vdiff/ANIMATION_CONSTANT;
+                    return Coordinate(hdiff, vdiff);
+                }
+
+                void add_to_diff_coords(Coordinate game_coord, Coordinate extras)
+                {
+                    int extra_x = extras.x;
+                    int extra_y = extras.y;
+                    Coordinate diagonal_cord = Coordinate(game_coord.x + extra_x, game_coord.y + extra_y);
+                    Coordinate horizontal_cord = Coordinate(game_coord.x, game_coord.y + extra_y);
+                    Coordinate vertical_cord = Coordinate(game_coord.x + extra_x, game_coord.y);
+                    gui->diff_coords.push_back(gui->game_to_screen_coord(diagonal_cord));
+                    gui->diff_coords.push_back(gui->game_to_screen_coord(horizontal_cord));
+                    gui->diff_coords.push_back(gui->game_to_screen_coord(vertical_cord));
+                }
+
+                void animate()
+                {
+                    Coordinate diffs = get_animation_diff(from, to);
+                    Coordinate game_coord = gui->screen_to_game_coord(position);
+                    add_to_diff_coords(game_coord, get_extra_coord_displacement(diffs.x, diffs.y));
+                    position.x += diffs.x;
+                    position.y += diffs.y;
+                    gui->render_texture(texture, gui->ren, position, s_location, s_size);
+                }
         };
 
         //tiles
@@ -35,13 +75,12 @@ class GUI
         int row_width;
         int row_height;
 
-
-        SDL_Renderer * ren;
         std::vector<Path *> paths;
         TDMap * map;
         SDL_Texture * tile;
         SDL_Texture * background;
         SDL_Window *win;
+        SDL_Renderer * ren;
         std::vector<Animation> animations;
         std::vector<Coordinate> diff_coords;
         std::map<std::string, SDL_Texture *> loaded_textures;
@@ -71,19 +110,30 @@ class GUI
             return texture;
         }  
 
-        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, Coordinate coordinate)
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, Coordinate screen_location, Coordinate sprite_coordinate, Coordinate sizes)
         {
-            render_texture(tex, ren, coordinate.x, coordinate.y, row_width, row_height);
+            SDL_Rect renderQuad = {sprite_coordinate.x * sizes.x, sprite_coordinate.y * sizes.y , sizes.x, sizes.y};
+            render_texture(tex, ren, &renderQuad, screen_location);
         }
 
-        void render_texture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int rw, int rh)
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, Coordinate coordinate)
+        {
+            render_texture(tex, ren, nullptr, coordinate);
+        }
+
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, SDL_Rect * rect, Coordinate coordinate)
+        {
+            render_texture(tex, ren, rect, coordinate.x, coordinate.y, row_width, row_height);
+        }
+
+        void render_texture(SDL_Texture *tex, SDL_Renderer *ren, SDL_Rect* clip_rect, int x, int y, int rw, int rh)
         {
             SDL_Rect dst;
             dst.x = x;
             dst.y = y;
             dst.w = rw;
             dst.h = rh;
-            SDL_RenderCopy(ren, tex, NULL, &dst);
+            SDL_RenderCopy(ren, tex, clip_rect, &dst);
         }
 
         Coordinate screen_to_game_coord(Coordinate c)
@@ -155,7 +205,7 @@ class GUI
         bool create_window()
         {
             win = SDL_CreateWindow("Tower Defense", 
-                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, DEFAULT_WIDTH, DEFAULT_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
+                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, DEFAULT_WIDTH, DEFAULT_HEIGHT, SDL_WINDOW_SHOWN);
 
             return win != nullptr;
         }
@@ -206,44 +256,24 @@ class GUI
 
         // takes pixel coords.
         // pls take care while using.
-        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to)
+        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize)
         {
-            animations.push_back(Animation(texture, from, from, to));
+            int w, h;
+            SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+            set_up_animation(texture, from, to, randomize, Coordinate(0, 0), Coordinate(w, h));
+        }
+
+        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize, Coordinate s_location, Coordinate s_size)
+        {
+            animations.push_back(Animation(this, texture, from, from, to, randomize, s_location, s_size));
             diff_coords.push_back(from);
             diff_coords.push_back(to);
         }
 
         void clear_animations()
         {
+            re_render();
             animations.clear();
-        }
-
-        void add_to_diff_coords(Coordinate game_coord, Coordinate extras)
-        {
-            int extra_x = extras.x;
-            int extra_y = extras.y;
-            Coordinate diagonal_cord = Coordinate(game_coord.x + extra_x, game_coord.y + extra_y);
-            Coordinate horizontal_cord = Coordinate(game_coord.x, game_coord.y + extra_y);
-            Coordinate vertical_cord = Coordinate(game_coord.x + extra_x, game_coord.y);
-            diff_coords.push_back(game_to_screen_coord(diagonal_cord));
-            diff_coords.push_back(game_to_screen_coord(horizontal_cord));
-            diff_coords.push_back(game_to_screen_coord(vertical_cord));
-        }
-
-        inline Coordinate get_animation_diff(Coordinate from, Coordinate to)
-        {
-            int hdiff = to.x - from.x;
-            int vdiff = to.y - from.y;
-            hdiff = hdiff/ANIMATION_CONSTANT;
-            vdiff = vdiff/ANIMATION_CONSTANT;
-            return Coordinate(hdiff, vdiff);
-        }
-
-        inline Coordinate get_extra_coord_displacement(int hdiff, int vdiff)
-        {
-            int extra_x = hdiff == 0 ? 0 : hdiff/std::abs(hdiff);
-            int extra_y = vdiff == 0 ? 0 : vdiff/std::abs(vdiff);  
-            return Coordinate(extra_x, extra_y);
         }
 
         void show_animations()
@@ -251,15 +281,7 @@ class GUI
             re_render();
             BOOST_FOREACH(Animation & animation, animations)
             {
-                auto tex = animation.texture;
-                auto from = animation.from;
-                auto to = animation.to;
-                Coordinate diffs = get_animation_diff(from, to);
-                Coordinate game_coord = screen_to_game_coord(animation.position);
-                add_to_diff_coords(game_coord, get_extra_coord_displacement(diffs.x, diffs.y));
-                animation.position.x += diffs.x;
-                animation.position.y += diffs.y;
-                render_texture(tex, ren, animation.position);
+                animation.animate();
             }
         }
 
@@ -277,14 +299,14 @@ class GUI
                         BOOST_FOREACH(Coordinate c, tower->get_attack_tiles())
                         {
                             Coordinate screen_cord = game_to_screen_coord(c);
-                            set_up_animation(attack_texture, current_cord, screen_cord);
+                            set_up_animation(attack_texture, current_cord, screen_cord, false);
                         }
                     }
                     BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
                     {
-                        SDL_Texture * sprite_texture = load_texture(s->image_string, ren);
+                        SDL_Texture * sprite_texture = load_texture(s->get_spritesheet()->get_file_name(), ren);
                         Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
-                        set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()));
+                        set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size());
                     }
                 }
             }
@@ -293,7 +315,6 @@ class GUI
                 show_animations();
                 SDL_RenderPresent(ren);
             }
-            re_render();
             SDL_RenderPresent(ren);
             clear_animations();
         }
