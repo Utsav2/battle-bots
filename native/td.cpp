@@ -11,6 +11,10 @@
 #include "gui.cpp"
 #include "shared/sizes.h"
 #include "shared/sprite.hpp"
+#include <stdlib.h>     /* srand, rand */
+#include <time.h> 
+#include "shared/spritesheet.hpp" 
+
 
 class TDGamecore
 {
@@ -26,6 +30,7 @@ class TDGamecore
         }
         TDGamecore(int number_of_players, int width, int height)
         {
+            srand(time(NULL));
             Path * path = new Path(NUM_ROWS, NUM_COLS);
             std::vector<Path *> paths {path} ;
             map = new TDMap(width, height, paths);
@@ -33,16 +38,35 @@ class TDGamecore
             tower->set_image_string("tower.png");
             tower->set_attack_image_string("arrow.png");
             map->add_tower(tower);
-            Sprite * sprite = new Sprite(path);
+            Spritesheet pokemon ("pokemon.png", Coordinate(80, 80));
+            Sprite * sprite = new Sprite(path, &pokemon, Coordinate(10, 10));
             map->add_sprite(sprite);
-            sprite->image_string = "sprite.png";
-            gui = new GUI(NUM_ROWS, NUM_COLS, path, map);
+            gui = new GUI(NUM_ROWS, NUM_COLS, paths, map);
            	gui->Update();
            	sprite->move_to_next_position();
            	gui->Update();
            	sprite->move_to_next_position();
            	tower->set_attacking(Coordinate(2, 5));
-            gui->Update();	
+            gui->Update();
+            tower->remove_attack_tile(Coordinate(2, 5));
+            sprite->move_to_next_position();
+            tower->set_attacking(Coordinate(3, 5));
+            gui->Update();  
+            tower->remove_attack_tile(Coordinate(3, 5));
+            sprite->move_to_next_position();
+            tower->set_attacking(Coordinate(4, 5));
+            gui->Update();  
+            tower->remove_attack_tile(Coordinate(4, 5));
+            sprite->move_to_next_position();
+            gui->Update();  
+            sprite->move_to_next_position();
+            gui->Update();  
+            sprite->move_to_next_position();
+            gui->Update();  
+            sprite->move_to_next_position();
+            gui->Update();  
+            sprite->move_to_next_position();
+            gui->Update();  
         }
 
         void generate_new_player()

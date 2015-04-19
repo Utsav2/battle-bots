@@ -10,30 +10,97 @@
 #include <set>
 #include <boost/foreach.hpp>
 #include "graphics/graphics_path.hpp"
-
-using namespace std;
+#include <stdlib.h>     
 
 class GUI
 {
     private:
+        class Animation
+        {
+            public:
+                GUI * gui;
+                SDL_Texture * texture;
+                Coordinate position;
+                Coordinate from;
+                Coordinate to;
+                bool randomize;
+                Coordinate s_location;
+                Coordinate s_size;
+
+                Animation(GUI * gui, SDL_Texture * texture, Coordinate position, Coordinate from, Coordinate to, bool randomize, Coordinate s_location, Coordinate s_size) : 
+                    gui(gui), texture(texture), position(position), from(from), to(to), randomize(randomize), s_location(s_location), s_size(s_size){}
+
+                inline Coordinate get_extra_coord_displacement(int hdiff, int vdiff)
+                {
+                    int extra_x = hdiff == 0 ? 0 : hdiff/std::abs(hdiff);
+                    int extra_y = vdiff == 0 ? 0 : vdiff/std::abs(vdiff);  
+                    return Coordinate(extra_x, extra_y);
+                }
+
+               inline Coordinate get_animation_diff(Coordinate from, Coordinate to)
+                {
+                    int hdiff = to.x - from.x;
+                    int vdiff = to.y - from.y;
+                    hdiff = hdiff/ANIMATION_CONSTANT;
+                    vdiff = vdiff/ANIMATION_CONSTANT;
+                    return Coordinate(hdiff, vdiff);
+                }
+
+                void add_to_diff_coords(Coordinate game_coord, Coordinate extras)
+                {
+                    int extra_x = extras.x;
+                    int extra_y = extras.y;
+                    Coordinate diagonal_cord = Coordinate(game_coord.x + extra_x, game_coord.y + extra_y);
+                    Coordinate horizontal_cord = Coordinate(game_coord.x, game_coord.y + extra_y);
+                    Coordinate vertical_cord = Coordinate(game_coord.x + extra_x, game_coord.y);
+                    gui->diff_coords.push_back(gui->game_to_screen_coord(diagonal_cord));
+                    gui->diff_coords.push_back(gui->game_to_screen_coord(horizontal_cord));
+                    gui->diff_coords.push_back(gui->game_to_screen_coord(vertical_cord));
+                }
+
+                void animate()
+                {
+                    Coordinate diffs = get_animation_diff(from, to);
+                    Coordinate game_coord = gui->screen_to_game_coord(position);
+                    add_to_diff_coords(game_coord, get_extra_coord_displacement(diffs.x, diffs.y));
+                    position.x += diffs.x;
+                    position.y += diffs.y;
+                    gui->render_texture(texture, gui->ren, position, s_location, s_size);
+                }
+        };
+
+        //tiles
+        int numrows;
+        int numcols;
+        int row_width;
+        int row_height;
+
+        std::vector<Path *> paths;
+        TDMap * map;
+        SDL_Texture * tile;
+        SDL_Texture * background;
+        SDL_Window *win;
+        SDL_Renderer * ren;
+        std::vector<Animation> animations;
+        std::vector<Coordinate> diff_coords;
+        std::map<std::string, SDL_Texture *> loaded_textures;
+
         void logSDLError(std::ostream &os, const std::string &msg)
         {
             os << msg << " error: " << SDL_GetError() << std::endl;
         }
 
-        std::map<std::string, SDL_Texture *> loaded_textures;
-        std::string resPath;
-
-        SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren)
+        SDL_Texture* load_texture(const std::string &file, SDL_Renderer *ren)
         {
             SDL_Texture *texture;
+
             if(loaded_textures.find(file) != loaded_textures.end())
             {
                 texture = loaded_textures[file];
             }
             else
             {
-                texture = IMG_LoadTexture(ren, (resPath + file).c_str());
+                texture = IMG_LoadTexture(ren, (GRAPHICS_PATH + file).c_str());
                 if (texture == nullptr)
                 {
                     logSDLError(std::cout, "LoadTexture");
@@ -43,237 +110,35 @@ class GUI
             return texture;
         }  
 
-        /**
-         * Draw an SDL_Texture to an SDL_Renderer at position x, y, preserving
-         * the texture's width and height
-         * @param tex The source texture we want to draw
-         * @param ren The renderer we want to draw to
-         * @param x The x Coordinate to draw to
-         * @param y The y Coordinate to draw to
-         */
-
-        void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int rw, int rh)
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, Coordinate screen_location, Coordinate sprite_coordinate, Coordinate sizes)
         {
-            //Setup the destination rectangle to be at the position we want
+            SDL_Rect renderQuad = {sprite_coordinate.x * sizes.x, sprite_coordinate.y * sizes.y , sizes.x, sizes.y};
+            render_texture(tex, ren, &renderQuad, screen_location);
+        }
+
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, Coordinate coordinate)
+        {
+            render_texture(tex, ren, nullptr, coordinate);
+        }
+
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, SDL_Rect * rect, Coordinate coordinate)
+        {
+            render_texture(tex, ren, rect, coordinate.x, coordinate.y, row_width, row_height);
+        }
+
+        void render_texture(SDL_Texture *tex, SDL_Renderer *ren, SDL_Rect* clip_rect, int x, int y, int rw, int rh)
+        {
             SDL_Rect dst;
             dst.x = x;
             dst.y = y;
             dst.w = rw;
             dst.h = rh;
-            SDL_RenderCopy(ren, tex, NULL, &dst);
+            SDL_RenderCopy(ren, tex, clip_rect, &dst);
         }
-
-        int row_width;
-        int row_height;
-        SDL_Renderer * ren;
-        Path * main_path;
-        int numrows;
-        int numcols;
 
         Coordinate screen_to_game_coord(Coordinate c)
         {
             return Coordinate(c.x / row_width, c.y / row_height);
-        }
-
-        void re_render()
-        {
-            std::set<Coordinate> s( diff_coords.begin(), diff_coords.end() );
-            diff_coords.assign( diff_coords.begin(), diff_coords.end() );
-
-            BOOST_FOREACH(Coordinate &screen_cord, diff_coords)
-            {
-
-                Coordinate game_coord = screen_to_game_coord(screen_cord);
-                renderTexture(background, ren, screen_cord.x, screen_cord.y, row_width, row_height);
-                if(main_path->in(game_coord.x, game_coord.y))
-                {
-                    renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
-                }
-                Tower * tower = map->get_tower_at(game_coord);
-                if(tower != nullptr)
-                {
-                    SDL_Texture * texture = loadTexture(tower->get_image_string(), ren); 
-                    if(texture != nullptr)
-                    {
-                        renderTexture(texture, ren, screen_cord.x, screen_cord.y, row_width, row_height);
-                    }
-                } 
-            }
-        }
-
-        void fill_screen_tiles()
-        {
-            for(int i = 0; i < numrows; i++)
-            {
-                for(int j = 0; j < numcols; j++)
-                {
-
-                    Coordinate screen_cord = game_to_screen_coord(Coordinate(i, j));
-                    renderTexture(background, ren, screen_cord.x, screen_cord.y, row_width, row_height);
-                    if(main_path->in(i, j))
-                    {
-                        renderTexture(tile, ren, screen_cord.x, screen_cord.y, row_width, row_height);
-                    }
-                    Tower * tower = map->get_tower_at(i, j);
-                    if(tower != nullptr)
-                    {
-                        SDL_Texture * texture = loadTexture(tower->get_image_string(), ren); 
-                        Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
-                        if(texture != nullptr)
-                        {
-                            renderTexture(texture, ren, current_cord.x, current_cord.y, row_width, row_height);
-                        }
-                    }
-                }
-            }
-        }
-
-        TDMap * map;
-        int current_anim_frame;
-        SDL_Texture * tile;
-        SDL_Texture * background;
-
-    public:
-        GUI(int rows, int columns, Path * path, TDMap * map)
-        {
-            assert(rows > 0 && columns > 0 && path != nullptr && map != nullptr);
-            current_anim_frame = 0;
-            row_width = DEFAULT_WIDTH/rows;
-            row_height = DEFAULT_HEIGHT/columns;
-            resPath = GRAPHICS_PATH;
-            numrows = rows;
-            numcols = columns;
-            this->map = map;
-            SDL_Window *win;
-            main_path = path;
-
-            if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-            {
-                logSDLError(std::cout, "SDL_Init");
-                exit(1);
-            }
-
-            win = SDL_CreateWindow("Tower Defense", 
-                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, DEFAULT_WIDTH, DEFAULT_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
-
-            if (win == nullptr)
-            {
-                logSDLError(std::cout, "CreateWindow");
-                SDL_Quit();
-                exit(1);
-            }
-
-            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-            if (ren == nullptr)
-            {
-                logSDLError(std::cout, "CreateRenderer");
-                //TODO free window
-                SDL_Quit();
-                exit(1);
-            }
-
-            background = loadTexture("grass.png", ren);
-            tile = loadTexture("tile.png", ren);
-
-            if (background == nullptr || tile == nullptr)
-            {
-                logSDLError(std::cout, "Getting Images");
-                //TODO cleanup
-                SDL_Quit();
-                exit(1);
-            }
-
-            fill_screen_tiles();
-            SDL_RenderPresent(ren);
-            SDL_Delay(1000);        
-        }
-
-        typedef std::pair<std::pair<SDL_Texture *, Coordinate> , std::pair<Coordinate, Coordinate>> anim_type;
-        std::vector<anim_type> animations;
-        std::vector<Coordinate> diff_coords;
-        // takes pixel coords.
-        // pls take care while using.
-
-        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool addToDiff)
-        {
-            animations.push_back(anim_type(std::make_pair(texture, from), std::make_pair(from, to)));
-            diff_coords.push_back(from);
-            diff_coords.push_back(to);
-        }
-
-        void clear_attack_animations()
-        {
-            animations.clear();
-        }
-
-        bool show_animations()
-        {
-            re_render();
-            BOOST_FOREACH(anim_type & animation, animations)
-            {
-                SDL_Texture * tex = animation.first.first;
-                auto from_to = animation.second;
-                int hdiff = from_to.second.x - from_to.first.x;
-                int vdiff = from_to.second.y - from_to.first.y;
-                hdiff = hdiff/ANIMATION_CONSTANT;
-                vdiff = vdiff/ANIMATION_CONSTANT;
-                int extra_x = hdiff == 0 ? 0 : hdiff/std::abs(hdiff);
-                int extra_y = vdiff == 0 ? 0 : vdiff/std::abs(vdiff);  
-                Coordinate game_coord = screen_to_game_coord(animation.first.second);
-                Coordinate new_game_coord = Coordinate(game_coord.x + extra_x, game_coord.y + extra_y);
-                Coordinate new_game_coord2 = Coordinate(game_coord.x, game_coord.y + extra_y);
-                Coordinate new_game_coord3 = Coordinate(game_coord.x + extra_x, game_coord.y);
-                diff_coords.push_back(game_to_screen_coord(new_game_coord));
-                diff_coords.push_back(game_to_screen_coord(new_game_coord2));
-                diff_coords.push_back(game_to_screen_coord(new_game_coord3));
-                animation.first.second.x += hdiff;
-                animation.first.second.y += vdiff;
-                renderTexture(tex, ren, animation.first.second.x, animation.first.second.y, row_width, row_height);
-            }
-            if(++current_anim_frame < ANIMATION_CONSTANT)
-            {
-                SDL_Delay(10);
-                return false;
-            }
-            return true;
-        }
-
-        void Update()
-        {
-            current_anim_frame = 0;
-            for(int i = 0; i < NUM_ROWS; i++)
-            {
-                for(int j = 0; j < NUM_COLS; j++)
-                {
-                    Tower * tower = map->get_tower_at(i, j);
-                    if(tower != nullptr)
-                    {
-                        Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
-                        SDL_Texture * attack_texture = loadTexture(tower->get_attack_image_string(), ren);
-                        BOOST_FOREACH(Coordinate c, tower->get_attack_tiles())
-                        {
-                            Coordinate screen_cord = game_to_screen_coord(c);
-                            set_up_animation(attack_texture, current_cord, screen_cord, true);
-                        }
-                    }
-                    BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
-                    {
-
-                        SDL_Texture * sprite_texture = loadTexture(s->image_string, ren);
-                        Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
-                        set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true);
-                    }
-                }
-            }
-            while(!show_animations())
-            {
-                SDL_RenderPresent(ren);
-            }
-            re_render();
-            SDL_Delay(300);
-            SDL_RenderPresent(ren);
-            clear_attack_animations();
         }
 
         Coordinate game_to_screen_coord(Coordinate game_coord)
@@ -284,5 +149,173 @@ class GUI
         Coordinate game_to_screen_coord(int x, int y)
         {
             return game_to_screen_coord(Coordinate(x, y));
+        }
+
+        void render_game_screen(Coordinate game_coord)
+        {
+
+            Coordinate screen_cord = game_to_screen_coord(game_coord);
+            render_texture(background, ren, screen_cord);
+
+            BOOST_FOREACH(Path * path, paths)
+            {
+                if(path->in(game_coord))
+                {
+                    render_texture(tile, ren, screen_cord);
+                }
+            }
+
+            Tower * tower = map->get_tower_at(game_coord);
+            if(tower != nullptr)
+            {
+                SDL_Texture * texture = load_texture(tower->get_image_string(), ren); 
+                if(texture != nullptr)
+                {
+                    render_texture(texture, ren, screen_cord);
+                }
+            } 
+        }
+
+        void re_render()
+        {
+            std::set<Coordinate> s(diff_coords.begin(), diff_coords.end());
+            diff_coords.assign( s.begin(), s.end() );
+            BOOST_FOREACH(Coordinate &screen_cord, diff_coords)
+            {
+                render_game_screen(screen_to_game_coord(screen_cord));
+            }
+        }
+
+        void fill_screen_tiles()
+        {
+            for(int i = 0; i < numrows; i++)
+            {
+                for(int j = 0; j < numcols; j++)
+                {
+                    render_game_screen(Coordinate(i, j));
+                }
+            }
+        }
+
+        bool init()
+        {
+            return SDL_Init(SDL_INIT_EVERYTHING) == 0;
+        }
+
+        bool create_window()
+        {
+            win = SDL_CreateWindow("Tower Defense", 
+                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, DEFAULT_WIDTH, DEFAULT_HEIGHT, SDL_WINDOW_SHOWN);
+
+            return win != nullptr;
+        }
+
+        bool create_renderer()
+        {    
+            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            return ren != nullptr;
+
+        }
+
+        bool create_textures()
+        {
+            background = load_texture("grass.png", ren);
+            tile = load_texture("tile.png", ren);
+            return background != nullptr || tile != nullptr;
+        }
+
+    public:
+        GUI(int rows, int columns, std::vector<Path *> paths, TDMap * map)
+        {
+
+            assert(rows > 0 && columns > 0 && paths.size() != 0 && map != nullptr);
+
+            row_width = DEFAULT_WIDTH/rows;
+            row_height = DEFAULT_HEIGHT/columns;
+            numrows = rows;
+            numcols = columns;
+            this->map = map;
+            this->paths = paths;
+
+            /* Doesnt work with short circuiting in an if... wonder why */
+            bool completed;
+            completed = init();
+            completed = completed && create_window();
+            completed = completed && create_renderer();
+            completed = completed && create_textures();
+
+            if (!completed)
+            {
+                logSDLError(std::cout, "Initialization of components");
+                SDL_Quit();
+                exit(1);
+            } 
+            fill_screen_tiles();
+            SDL_RenderPresent(ren);
+        }
+
+        // takes pixel coords.
+        // pls take care while using.
+        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize)
+        {
+            int w, h;
+            SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+            set_up_animation(texture, from, to, randomize, Coordinate(0, 0), Coordinate(w, h));
+        }
+
+        void set_up_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize, Coordinate s_location, Coordinate s_size)
+        {
+            animations.push_back(Animation(this, texture, from, from, to, randomize, s_location, s_size));
+            diff_coords.push_back(from);
+            diff_coords.push_back(to);
+        }
+
+        void clear_animations()
+        {
+            re_render();
+            animations.clear();
+        }
+
+        void show_animations()
+        {
+            re_render();
+            BOOST_FOREACH(Animation & animation, animations)
+            {
+                animation.animate();
+            }
+        }
+
+        void Update()
+        {
+            for(int i = 0; i < NUM_ROWS; i++)
+            {
+                for(int j = 0; j < NUM_COLS; j++)
+                {
+                    Tower * tower = map->get_tower_at(i, j);
+                    if(tower != nullptr)
+                    {
+                        Coordinate current_cord = game_to_screen_coord(Coordinate(i, j));
+                        SDL_Texture * attack_texture = load_texture(tower->get_attack_image_string(), ren);
+                        BOOST_FOREACH(Coordinate c, tower->get_attack_tiles())
+                        {
+                            Coordinate screen_cord = game_to_screen_coord(c);
+                            set_up_animation(attack_texture, current_cord, screen_cord, false);
+                        }
+                    }
+                    BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
+                    {
+                        SDL_Texture * sprite_texture = load_texture(s->get_spritesheet()->get_file_name(), ren);
+                        Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
+                        set_up_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size());
+                    }
+                }
+            }
+            for(int i = 0; i < ANIMATION_CONSTANT; i++)
+            {
+                show_animations();
+                SDL_RenderPresent(ren);
+            }
+            SDL_RenderPresent(ren);
+            clear_animations();
         }
 };
