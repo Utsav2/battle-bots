@@ -70,29 +70,15 @@ bool Range::in(Coordinate a, Coordinate b)
 	}
 }
 
-Tower::Tower(Coordinate location)
-	:location(location)
+Tower::Tower(Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate>& cycles)
+	:location(location), image_string(image_string), spritesheet(spritesheet), cycles(cycles)
 {
 }
 
-void Tower::set_image_string(std::string image_string)
-{
-	_image_string = image_string;
-}
 
-std::string Tower::get_image_string()
+Spritesheet * Tower::get_spritesheet()
 {
-	return _image_string;
-}
-
-void Tower::set_attack_image_string(std::string attack_image_string)
-{
-	_attack_image_string = attack_image_string;
-}
-
-std::string Tower::get_attack_image_string()
-{
-	return _attack_image_string;
+	return spritesheet;
 }
 
 //doesnt do any error checking. call with caution
@@ -114,4 +100,14 @@ Coordinate Tower::get_coordinate()
 std::vector<Coordinate>& Tower::get_attack_tiles()
 {
 	return attacking_tiles;
+}
+
+std::string Tower::get_image_string()
+{
+	return image_string;
+}
+
+std::vector<Coordinate>& Tower::get_sscords()
+{
+	return cycles;
 }

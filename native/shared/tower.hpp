@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include "coordinate.hpp"
+#include "spritesheet.hpp"
+
 
 enum Direction { NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
@@ -28,22 +30,23 @@ class Tower
 {
 
 	private:
-		std::string _image_string;
-		std::string _attack_image_string;
 		Range * range;
 		std::vector<Coordinate> attacking_tiles;
 		Coordinate location;
+		std::string image_string;
+		Spritesheet * spritesheet;
+		std::vector<Coordinate> cycles;
 
 	public:
-		Tower(Coordinate location);
+		Tower(Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate> & cycles);
 		Coordinate get_coordinate();
-		void set_image_string(std::string);
-		std::string get_image_string();
-		void set_attack_image_string(std::string);
-		std::string get_attack_image_string();
 		void set_attacking(Coordinate);
 		void remove_attack_tile(Coordinate);
 		std::vector<Coordinate>& get_attack_tiles();
+        Spritesheet * get_spritesheet();
+        std::string get_image_string();
+        std::vector<Coordinate>& get_sscords();
+
 };
 
 
