@@ -77,6 +77,12 @@ bool TDMap::add_tower(Tower * tower)
 	if (get_tower_at(c) != nullptr)
 		return false;
 
+	BOOST_FOREACH(Path * path, paths)
+	{
+		if(path->in(c))
+			return false;
+	}
+
 	this->towers.push_back(tower);
 	return true;
 }

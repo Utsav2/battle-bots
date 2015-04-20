@@ -105,11 +105,50 @@ class GUI
         std::vector<Animation> animations;
         std::vector<Coordinate> diff_coords;
         std::map<std::string, SDL_Texture *> loaded_textures;
+        typedef std::pair<std::string, bool> file_string_colored;
+        std::map<std::string, SDL_Surface *> loaded_surfaces;
+        std::map<file_string_colored, SDL_Texture*> loaded_sprite_textures;
+
 
         void logSDLError(std::ostream &os, const std::string &msg)
         {
             os << msg << " error: " << SDL_GetError() << std::endl;
         }
+
+        SDL_Surface * load_surface(const std::string & file)
+        {
+            if(loaded_surfaces.find(file) != loaded_surfaces.end())
+            {
+                return loaded_surfaces[file];
+            }
+            else
+            {
+                SDL_Surface * surface = IMG_Load((GRAPHICS_PATH + file).c_str());
+                loaded_surfaces[file] = surface;
+                return surface;
+            }
+
+        }
+
+        SDL_Texture * load_sprite_texture(const std::string &file, bool colored)
+        {
+            file_string_colored f = std::make_pair(file, colored);
+            if(loaded_sprite_textures.find(f) != loaded_sprite_textures.end())
+            {
+                return loaded_sprite_textures[f];
+            }
+            else
+            {   
+                SDL_Surface * surface = load_surface(file);
+                SDL_Texture * texture = SDL_CreateTextureFromSurface(ren, surface);
+                if(colored)
+                    SDL_SetTextureColorMod(texture, 255, 0, 0);
+                loaded_sprite_textures[f] = texture;
+                return texture;
+            }
+        }
+
+
 
         SDL_Texture* load_texture(const std::string &file, SDL_Renderer *ren)
         {
@@ -121,7 +160,12 @@ class GUI
             }
             else
             {
-                texture = IMG_LoadTexture(ren, (GRAPHICS_PATH + file).c_str());
+                SDL_Surface * surface = load_surface(file);
+                if (surface == nullptr)
+                {
+                    logSDLError(std::cout, "LoadTexture");                    
+                }
+                texture = SDL_CreateTextureFromSurface(ren, surface);
                 if (texture == nullptr)
                 {
                     logSDLError(std::cout, "LoadTexture");
@@ -172,10 +216,22 @@ class GUI
             return game_to_screen_coord(Coordinate(x, y));
         }
 
-        void render_game_screen(Coordinate game_coord)
+        void render_game_screen(Coordinate game_coord, bool colorize)
         {
 
             Coordinate screen_cord = game_to_screen_coord(game_coord);
+
+            if(colorize)
+            {
+                SDL_SetTextureColorMod(background, 255, 128, 128);
+                SDL_SetTextureColorMod(tile, 255, 128, 128);
+            }
+            else
+            {
+                SDL_SetTextureColorMod(background, 255, 255, 255);
+                SDL_SetTextureColorMod(tile, 255, 255, 255);
+            }
+
             render_texture(background, ren, screen_cord);
 
             BOOST_FOREACH(Path * path, paths)
@@ -187,6 +243,7 @@ class GUI
             }
 
             Tower * tower = map->get_tower_at(game_coord);
+            SDL_SetRenderTarget(ren, background);
             if(tower != nullptr)
             {
                 SDL_Texture * texture = load_texture(tower->get_image_string(), ren); 
@@ -195,25 +252,22 @@ class GUI
                     render_texture(texture, ren, screen_cord);
                 }
             } 
+            SDL_SetRenderTarget(ren, nullptr);
         }
 
         void re_render()
         {
-            std::set<Coordinate> s(diff_coords.begin(), diff_coords.end());
-            diff_coords.assign( s.begin(), s.end() );
-            BOOST_FOREACH(Coordinate &screen_cord, diff_coords)
-            {
-                render_game_screen(screen_to_game_coord(screen_cord));
-            }
+            fill_screen_tiles(false);
         }
 
-        void fill_screen_tiles()
+        void fill_screen_tiles(bool colorize)
         {
             for(int i = 0; i < numrows; i++)
             {
                 for(int j = 0; j < numcols; j++)
                 {
-                    render_game_screen(Coordinate(i, j));
+
+                    render_game_screen(Coordinate(i, j), colorize);
                 }
             }
         }
@@ -271,7 +325,7 @@ class GUI
                 SDL_Quit();
                 exit(1);
             } 
-            fill_screen_tiles();
+            fill_screen_tiles(false);
             SDL_RenderPresent(ren);
         }
 
@@ -324,6 +378,17 @@ class GUI
             }            
         }
 
+        void flash_red()
+        {
+            fill_screen_tiles(true);
+            SDL_RenderPresent(ren);
+            SDL_Delay(300);
+            fill_screen_tiles(false);
+            SDL_RenderPresent(ren);
+
+        }
+
+
         void Update()
         {
             for(int i = 0; i < NUM_ROWS; i++)
@@ -332,15 +397,7 @@ class GUI
                 {
                     BOOST_FOREACH(Sprite * s, map->get_sprites_at(i,j))
                     {
-                        SDL_Texture * sprite_texture = load_texture(s->get_spritesheet()->get_file_name(), ren);
-                        if(s->is_attacked())
-                        {
-                            SDL_SetTextureColorMod(sprite_texture, 255, 128, 128);
-                        }
-                        else
-                        {
-                            SDL_SetTextureColorMod(sprite_texture, 255, 255, 255);                            
-                        }
+                        SDL_Texture * sprite_texture = load_sprite_texture(s->get_spritesheet()->get_file_name(), s->is_attacked());
                         Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
                         set_up_sprite_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size(), s->get_spritesheet()->get_frame_rate(), -1);
                     }
@@ -353,7 +410,9 @@ class GUI
                         BOOST_FOREACH(Coordinate c, tower->get_attack_tiles())
                         {
                             Coordinate screen_cord = game_to_screen_coord(c);
-                            int direction = current_cord.x < screen_cord.x ? 2 : current_cord.x == screen_cord.x ? 1 : 0;
+                            int xdirection = current_cord.x < screen_cord.x ? 2 : current_cord.x == screen_cord.x ? 1 : 0;
+                            int ydirection = current_cord.y < screen_cord.y ? 0 : 1;
+                            int direction = xdirection + (tower->get_sscords().size()/tower->get_spritesheet()->get_frame_rate() * ydirection);
                             set_up_tower_animation(texture, current_cord, screen_cord, true, tower->get_sscords(), tower->get_spritesheet()->get_box_size(), tower->get_spritesheet()->get_frame_rate(), direction);
                         }
                     }
