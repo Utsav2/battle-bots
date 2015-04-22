@@ -1,3 +1,14 @@
+Player::Player(int money = 1000)
+{
+	this->money = money;
+}
+
+
+bool Player::still_playing()
+{
+	return is_playing;
+}
+
 /*
    Just a constructor.
 */
@@ -106,4 +117,12 @@ bool TDMap::add_sprite(Sprite * sprite)
 void TDMap::remove_sprite(Sprite * sprite)
 {
 	this->sprites.erase(std::remove(this->sprites.begin(), this->sprites.end(), sprite), this->sprites.end());
+}
+
+void TDMap::update_towers()
+{
+	BOOST_FOREACH(Tower * tower, this->towers)
+	{
+		tower->Update();
+	}
 }

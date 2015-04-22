@@ -12,6 +12,7 @@
 #include "graphics/graphics_path.hpp"
 #include <stdlib.h>     
 
+
 class GUI
 {
     private:
@@ -108,6 +109,7 @@ class GUI
         typedef std::pair<std::string, bool> file_string_colored;
         std::map<std::string, SDL_Surface *> loaded_surfaces;
         std::map<file_string_colored, SDL_Texture*> loaded_sprite_textures;
+        SDL_Thread * event_thread;
 
 
         void logSDLError(std::ostream &os, const std::string &msg)
@@ -272,6 +274,55 @@ class GUI
             }
         }
 
+        void handle_mouse_over_at(Coordinate screen_cord)
+        {
+            Tower * tower = map->get_tower_at(screen_to_game_coord(screen_cord));
+            if(tower != nullptr)
+                std::cout << "Hovered over a tower!" << std::endl;
+        }
+
+        static int handle_event(void * ptr){
+             return ((GUI*)ptr)->handle_event();
+        }
+
+
+        int handle_event()
+        {
+
+            SDL_Event event;
+
+            bool quit;
+
+            quit = false;
+
+            while( !quit ){
+                /* Poll for events */
+                while( SDL_PollEvent( &event ) ){
+                    
+                    switch( event.type ){
+                        /* SDL_QUIT event (window close) */
+                        case SDL_QUIT:
+                            std::cout << "Tried to quit!" << std::endl;
+                            quit = true;
+                            break;
+
+                        case SDL_MOUSEMOTION:
+                            handle_mouse_over_at(Coordinate(event.motion.x, event.motion.y));
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+
+            }
+
+            SDL_Quit();
+
+            return 0;
+        }  
+
         bool init()
         {
             return SDL_Init(SDL_INIT_EVERYTHING) == 0;
@@ -299,7 +350,9 @@ class GUI
             return background != nullptr || tile != nullptr;
         }
 
-    public:
+    public:  
+
+
         GUI(int rows, int columns, std::vector<Path *> paths, TDMap * map)
         {
 
@@ -327,6 +380,8 @@ class GUI
             } 
             fill_screen_tiles(false);
             SDL_RenderPresent(ren);
+            event_thread = SDL_CreateThread(handle_event, "Hello", this);
+
         }
 
         std::vector<Animation> tower_anims;

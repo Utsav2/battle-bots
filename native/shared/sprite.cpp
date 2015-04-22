@@ -22,7 +22,7 @@ Coordinate Sprite::get_previous_position()
 }
 
 
-Sprite::Sprite(Path * path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles) : spritesheet(spritesheet), cycles(cycles)
+Sprite::Sprite(Path * path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, std::vector<Coordinate>& dead_cycles, int health = 100) : spritesheet(spritesheet), cycles(cycles), dead_cycles(dead_cycles) , health(health)
 {
     attacked = false;
     dead = false;
@@ -43,7 +43,10 @@ bool Sprite::is_out_of_map()
 
 std::vector<Coordinate>& Sprite::get_sscords()
 {
-	return cycles;
+    if(dead)
+        return dead_cycles;
+    else
+	   return cycles;
 }
 
 void Sprite::set_attacked()
@@ -59,12 +62,14 @@ bool Sprite::is_attacked()
     return attacked;
 }
 
-void Sprite::set_new_cycles(std::vector<Coordinate> cycles)
-{
-    this->cycles = cycles;
-}
-
 void Sprite::die()
 {
     dead = true;
+}
+
+void Sprite::add_damage(int damage)
+{
+    health -= damage;
+    if(health <= 0)
+        die();
 }

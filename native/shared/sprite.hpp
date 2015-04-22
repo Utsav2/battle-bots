@@ -14,10 +14,13 @@ class Sprite
         Path * path;
         Spritesheet * spritesheet;
         std::vector<Coordinate> cycles;
+        std::vector<Coordinate> dead_cycles;
         bool attacked;
         bool dead;
+        int health;
+
     public:
-        Sprite(Path * path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles);
+        Sprite(Path * path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, std::vector<Coordinate>& dead_cycles, int health);
         Coordinate get_coordinate();
         void move_to_next_position();
         bool is_out_of_map();
@@ -26,9 +29,11 @@ class Sprite
         std::vector<Coordinate>& get_sscords();
         void set_not_attacked();
         void set_attacked();
+        void add_damage(int);
         bool is_attacked();
         void set_new_cycles(std::vector<Coordinate>);
         void die();
+        bool is_dead(){return dead;}
 
 
 };
