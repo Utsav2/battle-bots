@@ -25,11 +25,11 @@ class TDMap
 		std::vector<Sprite *> sprites;
 		std::vector<Tower *> towers;
 		Coordinate dimensions;
-		std::vector<Path *> paths;
+		std::vector<Path> paths;
 
 	public:
-		TDMap(Coordinate dimensions, std::vector<Path *> paths);
-		TDMap(int width, int height, std::vector<Path *> paths);
+		TDMap(Coordinate dimensions, std::vector<Path> paths);
+		TDMap(int width, int height, std::vector<Path> paths);
 		std::vector<Sprite *> get_sprites_at(int row, int column);
 		std::vector<Sprite *> get_sprites_at(Coordinate c);
 		Tower * get_tower_at(Coordinate c);

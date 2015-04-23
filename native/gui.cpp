@@ -40,6 +40,7 @@ class GUI
                     gui(gui), texture(texture), position(position), from(from), to(to), randomize(randomize), cycles(cycles), s_size(s_size), frame_rate(frame_rate), direction(direction)
                     {
                         cycle_index = 0;
+
                     }
 
                 inline Coordinate get_extra_coord_displacement(int hdiff, int vdiff)
@@ -100,7 +101,7 @@ class GUI
         int row_width;
         int row_height;
 
-        std::vector<Path *> paths;
+        std::vector<Path> paths;
         TDMap * map;
         SDL_Texture * tile;
         SDL_Texture * background;
@@ -242,9 +243,9 @@ class GUI
 
             render_texture(background, ren, screen_cord);
 
-            BOOST_FOREACH(Path * path, paths)
+            BOOST_FOREACH(Path & path, paths)
             {
-                if(path->in(game_coord))
+                if(path.in(game_coord))
                 {
                     render_texture(tile, ren, screen_cord);
                 }
@@ -375,7 +376,7 @@ class GUI
 
         bool create_renderer()
         {    
-            ren = SDL_CreateRenderer(win, -1, 0);
+            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
             return ren != nullptr;
         }
 
@@ -398,7 +399,7 @@ class GUI
             return quit;
         }
 
-        GUI(int rows, int columns, std::vector<Path *> paths, TDMap * map)
+        GUI(int rows, int columns, std::vector<Path> &paths, TDMap * map)
         {
 
             assert(rows > 0 && columns > 0 && paths.size() != 0 && map != nullptr);
@@ -443,8 +444,20 @@ class GUI
             set_up_animation(tower_anims, texture, from, to, randomize, s_locations, s_size, frame_rate, direction);
         }
 
-        void set_up_sprite_animation(SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize, std::vector<Coordinate>& s_locations, Coordinate s_size, size_t frame_rate, int direction)
+        void set_up_sprite_animation(Sprite * sprite, SDL_Texture * texture, Coordinate from, Coordinate to, bool randomize, std::vector<Coordinate>& s_locations, Coordinate s_size, size_t frame_rate, int direction)
         {
+            if(from.x < 0 && randomize)
+            {
+                Coordinate offsets(((rand() % (row_width + 1)) - (row_width)/2)/2, (rand() % (row_height + 1)) - (row_height)/2);
+                sprite->set_random_position(offsets);
+            }
+
+            Coordinate offsets = sprite->get_offset();
+            from.x += offsets.x;
+            from.y += offsets.y;
+            to.x += offsets.x;
+            to.y += offsets.y;
+
             set_up_animation(sprite_anims, texture, from, to, randomize, s_locations, s_size, frame_rate, direction);
         }
 
@@ -460,12 +473,15 @@ class GUI
             re_render();
             tower_anims.clear();
             sprite_anims.clear();
+            SDL_LockMutex(lock);
+            colors.clear();
+            SDL_UnlockMutex(lock);
+
         }
 
         void show_sprite_animations()
         {
             re_render();
-
             BOOST_FOREACH(Animation & animation, sprite_anims)
             {
                 animation.animate();
@@ -482,6 +498,7 @@ class GUI
 
         void Update()
         {
+            SDL_LockMutex(lock);
             for(int i = 0; i < NUM_ROWS; i++)
             {
                 for(int j = 0; j < NUM_COLS; j++)
@@ -490,7 +507,7 @@ class GUI
                     {
                         SDL_Texture * sprite_texture = load_sprite_texture(s->get_spritesheet()->get_file_name(), s->is_attacked());
                         Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
-                        set_up_sprite_animation(sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size(), s->get_spritesheet()->get_frame_rate(), -1);
+                        set_up_sprite_animation(s, sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size(), s->get_spritesheet()->get_frame_rate(), -1);
                     }
 
                     Tower * tower = map->get_tower_at(i, j);
@@ -500,16 +517,17 @@ class GUI
                         SDL_Texture * texture = load_texture(tower->get_spritesheet()->get_file_name(), ren);
                         BOOST_FOREACH(Coordinate c, tower->get_attack_tiles())
                         {
+                            colors[c] = true;
                             Coordinate screen_cord = game_to_screen_coord(c);
                             int xdirection = current_cord.x < screen_cord.x ? 2 : current_cord.x == screen_cord.x ? 1 : 0;
                             int ydirection = current_cord.y < screen_cord.y ? 0 : 1;
                             int direction = xdirection + (tower->get_sscords().size()/tower->get_spritesheet()->get_frame_rate() * ydirection);
-                            set_up_tower_animation(texture, current_cord, screen_cord, true, tower->get_sscords(), tower->get_spritesheet()->get_box_size(), tower->get_spritesheet()->get_frame_rate(), direction);
+                            set_up_tower_animation(texture, current_cord, screen_cord, false, tower->get_sscords(), tower->get_spritesheet()->get_box_size(), tower->get_spritesheet()->get_frame_rate(), direction);
                         }
                     }
                 }
             }
-
+            SDL_UnlockMutex(lock);
             for(int i = 0; i < ANIMATION_CONSTANT; i++)
             {
                 show_sprite_animations();

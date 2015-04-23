@@ -1,9 +1,12 @@
 #include "sprite.hpp"
 #include <iostream>
 
-Coordinate Sprite::get_coordinate()
+Coordinate Sprite::get_coordinate(int index = -1)
 {
-    return this->path->get_coordinate(this->pos_index);
+    if(index == -1)
+        index = pos_index;
+
+    return this->path.get_coordinate(index);
 }
 
 void Sprite::move_to_next_position()
@@ -15,18 +18,17 @@ void Sprite::move_to_next_position()
 
 Coordinate Sprite::get_previous_position()
 {
-    if (this->pos_index == 0 || dead)
-    	return get_coordinate();
+    if (this->pos_index == 0)
+    	return get_coordinate(0);
     else
-    	return this->path->get_coordinate(this->pos_index-1);
+    	return get_coordinate(this->pos_index-1);
 }
 
 
-Sprite::Sprite(Path * path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, std::vector<Coordinate>& dead_cycles, int health = 100) : spritesheet(spritesheet), cycles(cycles), dead_cycles(dead_cycles) , health(health)
+Sprite::Sprite(Path path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, std::vector<Coordinate>& dead_cycles, int health = 100) : path(path), spritesheet(spritesheet), cycles(cycles), dead_cycles(dead_cycles) , health(health), random_pos(Coordinate(0, 0))
 {
     attacked = false;
     dead = false;
-    this->path = path;
     this->pos_index = 0;
 
 }
@@ -38,7 +40,7 @@ Spritesheet * Sprite::get_spritesheet()
 
 bool Sprite::is_out_of_map()
 {
-    return this->pos_index >= this->path->size();
+    return this->pos_index >= this->path.size();
 }
 
 std::vector<Coordinate>& Sprite::get_sscords()
@@ -72,4 +74,15 @@ void Sprite::add_damage(int damage)
     health -= damage;
     if(health <= 0)
         die();
+}
+
+void Sprite::set_random_position(Coordinate coord)
+{
+    random_pos.x = coord.x;
+    random_pos.y = coord.y;
+}
+
+Coordinate Sprite::get_offset()
+{
+    return random_pos;
 }
