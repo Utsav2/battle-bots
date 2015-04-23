@@ -8,11 +8,15 @@
 
 class Player
 {
-	public:
-		Player()
-		{
 
-		}
+	private:
+		bool is_playing;
+		int money;
+
+	public:
+		Player(int);
+		bool still_playing();
+
 };
 
 class TDMap
@@ -29,9 +33,13 @@ class TDMap
 		std::vector<Sprite *> get_sprites_at(int row, int column);
 		std::vector<Sprite *> get_sprites_at(Coordinate c);
 		Tower * get_tower_at(Coordinate c);
+		std::vector<Tower *>& get_towers(){return towers;}
+		std::vector<Sprite *>& get_sprites(){return sprites;}
 		Tower * get_tower_at(int row, int column);
 		bool add_tower(Tower * tower);
 		bool add_sprite(Sprite * sprite);
+		void remove_sprite(Sprite * sprite);
+		void update_towers();
 };
 
 #include "tdmap.cpp"

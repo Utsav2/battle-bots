@@ -13,11 +13,17 @@ void Range::set_all(int r)
 	{
 		ranges[i] = r;
 	}
+	manhatten = r;
 }
 
 Range::Range()
 {
+	set_all(0);
+}
 
+Range::Range(int r)
+{
+	set_all(r);
 }
 
 void Range::set_specific(Direction d, int r)
@@ -58,47 +64,33 @@ bool Range::in_diagonal(int hdiff, int vdiff)
 }
 bool Range::in(Coordinate a, Coordinate b)
 {
-	int hdiff = b.x - a.x;
-	int vdiff = b.y - a.y;
-	if(hdiff == 0 || vdiff == 0)
-	{
-		return in_simple(hdiff, vdiff);
-	}
-	else
-	{
-		return in_diagonal(hdiff, vdiff);
-	}
+	int hdiff = std::abs(b.x - a.x);
+	int vdiff = std::abs(b.y - a.y);
+
+	return (hdiff + vdiff < manhatten);
 }
 
-Tower::Tower(Coordinate location)
-	:location(location)
+Tower::Tower(Range range, Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, int damage = 15, int cost = 100)
+	:range(range), location(location), image_string(image_string), spritesheet(spritesheet), cycles(cycles), damage(damage), cost(cost)
 {
 }
 
-void Tower::set_image_string(std::string image_string)
-{
-	_image_string = image_string;
-}
 
-std::string Tower::get_image_string()
+Spritesheet * Tower::get_spritesheet()
 {
-	return _image_string;
-}
-
-void Tower::set_attack_image_string(std::string attack_image_string)
-{
-	_attack_image_string = attack_image_string;
-}
-
-std::string Tower::get_attack_image_string()
-{
-	return _attack_image_string;
+	return spritesheet;
 }
 
 //doesnt do any error checking. call with caution
 void Tower::set_attacking(Coordinate location)
 {
 	attacking_tiles.push_back(location);
+}
+
+void Tower::set_attacking(Sprite * sprite)
+{
+	attack_sprites.push_back(sprite);
+	set_attacking(sprite->get_coordinate());
 }
 
 void Tower::remove_attack_tile(Coordinate location)
@@ -114,4 +106,42 @@ Coordinate Tower::get_coordinate()
 std::vector<Coordinate>& Tower::get_attack_tiles()
 {
 	return attacking_tiles;
+}
+
+std::string Tower::get_image_string()
+{
+	return image_string;
+}
+
+std::vector<Coordinate>& Tower::get_sscords()
+{
+	return cycles;
+}
+
+bool Tower::can_attack(Coordinate coord)
+{
+	return attack_sprites.size() == 0 && range.in(location, coord);
+}
+
+int Tower::get_damage()
+{
+	return damage;
+}
+
+void Tower::set_damage(int damage)
+{
+	assert(damage > 0);
+	this->damage = damage;
+}
+
+void Tower::Update()
+{
+	BOOST_FOREACH(Sprite * sprite, attack_sprites)
+	{
+		sprite->add_damage(this->damage);
+		sprite->set_attacked();
+	}
+	
+	attack_sprites.clear();
+	attacking_tiles.clear();
 }
