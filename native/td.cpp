@@ -73,8 +73,9 @@ class TDGamecore
             }
             else
             {
-               money -= tower->get_cost(); 
-  			   return map->add_tower(tower);
+  			   bool retval = map->add_tower(tower);
+               if(retval)
+                   money -= tower->get_cost(); 
             }
   		}
 
@@ -86,7 +87,7 @@ class TDGamecore
 
             Path * path = new Path(NUM_ROWS, NUM_COLS);
             paths.push_back(path);
-            map = new TDMap(width, height, paths);
+            map = new TDMap(NUM_ROWS, NUM_COLS, paths);
             set_up();
             Sprite * sprite = sprite_generator();
             map->add_sprite(sprite);
