@@ -17,7 +17,6 @@
 #include "shared/spritesheet.hpp" 
 #include <pthread.h>
 
-
 class TDGamecore
 {
     private:
@@ -26,7 +25,7 @@ class TDGamecore
         GUI * gui; 
         Spritesheet zombie;
         Spritesheet projectile;
-        std::vector<Path *> paths;
+        std::vector<Path> paths;
         std::vector<Coordinate> tower_cycles;
         std::vector<Coordinate> cycles;
         std::vector<Coordinate> death_cycles;
@@ -42,7 +41,7 @@ class TDGamecore
                 cycles.push_back(Coordinate(i, 5));
         }
 
-        Tower *  tower_generator(Coordinate location)
+        Tower * tower_generator(Coordinate location)
         {
             Tower * tower = new Tower(simple_range, location, "tower.png", &projectile, tower_cycles);
             return tower;
@@ -75,6 +74,7 @@ class TDGamecore
   			   bool retval = map->add_tower(tower);
                if(retval)
                    money -= tower->get_cost(); 
+               return retval;
             }
   		}
 
@@ -84,7 +84,7 @@ class TDGamecore
         {
             srand(time(NULL));
 
-            Path * path = new Path(NUM_ROWS, NUM_COLS);
+            Path path(NUM_ROWS, NUM_COLS);
             paths.push_back(path);
             map = new TDMap(NUM_ROWS, NUM_COLS, paths);
             set_up();
@@ -118,12 +118,13 @@ class TDGamecore
                     }
                     else
                     {
-                        gui->Update();
-                        map->remove_sprite(sprite);
-                        map->add_sprite(sprite_generator(rand() % 200));
                         increase_player_score();
                     }
                 }
+
+                int range = (rand() % 2) ;
+                while(--range >= 0)
+                    map->add_sprite(sprite_generator(rand() % 300));
         }
 
         void game_loop(int number_of_times = 1)
@@ -133,6 +134,12 @@ class TDGamecore
             {
                 BOOST_FOREACH(Sprite * sprite, map->get_sprites())
                 {
+                    if(sprite->is_dead())
+                    {
+                        map->remove_sprite(sprite);
+                        continue;
+                    }
+
                     bool sprite_attacked_flag = false;
                     BOOST_FOREACH(Tower * tower, map->get_towers())
                     {
@@ -145,7 +152,6 @@ class TDGamecore
                     if(!sprite_attacked_flag)
                         sprite->set_not_attacked();
                 }
-
                 gui->Update();
                 map->update_towers();
                 update_sprites();

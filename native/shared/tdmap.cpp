@@ -13,7 +13,7 @@ bool Player::still_playing()
 /*
    Just a constructor.
 */
-TDMap::TDMap(int width, int height, std::vector<Path *> paths)
+TDMap::TDMap(int width, int height, std::vector<Path> paths)
 	:dimensions(Coordinate(width,height)),paths(paths)
 {
 }
@@ -21,7 +21,7 @@ TDMap::TDMap(int width, int height, std::vector<Path *> paths)
 /*
    Just another constructor.
 */
-TDMap::TDMap(Coordinate dimensions, std::vector<Path *> paths)
+TDMap::TDMap(Coordinate dimensions, std::vector<Path> paths)
 	:dimensions(dimensions)
 {
 	assert(dimensions.x > 0 && dimensions.y > 0 && !(paths.empty()));
@@ -89,9 +89,9 @@ bool TDMap::add_tower(Tower * tower)
 	if (get_tower_at(c) != nullptr)
 		return false;
 
-	BOOST_FOREACH(Path * path, paths)
+	BOOST_FOREACH(Path & path, paths)
 	{
-		if(path->in(c))
+		if(path.in(c))
 			return false;
 	}
 

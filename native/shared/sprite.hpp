@@ -11,17 +11,18 @@ class Sprite
 {
     private:
         size_t pos_index;
-        Path * path;
+        Path path;
         Spritesheet * spritesheet;
         std::vector<Coordinate> cycles;
         std::vector<Coordinate> dead_cycles;
         bool attacked;
         bool dead;
         int health;
+        Coordinate random_pos;
 
     public:
-        Sprite(Path * path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, std::vector<Coordinate>& dead_cycles, int health);
-        Coordinate get_coordinate();
+        Sprite(Path path, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, std::vector<Coordinate>& dead_cycles, int health);
+        Coordinate get_coordinate(int);
         void move_to_next_position();
         bool is_out_of_map();
         Coordinate get_previous_position();
@@ -34,6 +35,8 @@ class Sprite
         void set_new_cycles(std::vector<Coordinate>);
         void die();
         bool is_dead(){return dead;}
+        void set_random_position(Coordinate coord);
+        Coordinate get_offset();
 
 
 };
