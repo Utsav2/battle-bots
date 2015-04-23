@@ -15,7 +15,6 @@
 #include <stdlib.h>    
 #include <time.h> 
 #include "shared/spritesheet.hpp" 
-#include <boost/thread.hpp>
 #include <pthread.h>
 
 
