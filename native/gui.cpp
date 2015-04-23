@@ -13,6 +13,8 @@
 #include <stdlib.h>     
 
 
+#define TOWER_HOVER_SURFACE "tower_hover"
+
 class GUI
 {
     private:
@@ -32,6 +34,7 @@ class GUI
                 Coordinate s_size;
                 size_t frame_rate;
                 int direction;
+
 
                 Animation(GUI * gui, SDL_Texture * texture, Coordinate position, Coordinate from, Coordinate to, bool randomize, std::vector<Coordinate>& cycles, Coordinate s_size, size_t frame_rate, int direction) : 
                     gui(gui), texture(texture), position(position), from(from), to(to), randomize(randomize), cycles(cycles), s_size(s_size), frame_rate(frame_rate), direction(direction)
@@ -109,7 +112,12 @@ class GUI
         typedef std::pair<std::string, bool> file_string_colored;
         std::map<std::string, SDL_Surface *> loaded_surfaces;
         std::map<file_string_colored, SDL_Texture*> loaded_sprite_textures;
+        std::map<Coordinate, bool> colors;
         SDL_Thread * event_thread;
+        bool quit;
+        SDL_Texture * tile_hover;
+        SDL_mutex *lock;
+        SDL_cond *cond;
 
 
         void logSDLError(std::ostream &os, const std::string &msg)
@@ -149,8 +157,6 @@ class GUI
                 return texture;
             }
         }
-
-
 
         SDL_Texture* load_texture(const std::string &file, SDL_Renderer *ren)
         {
@@ -223,7 +229,7 @@ class GUI
 
             Coordinate screen_cord = game_to_screen_coord(game_coord);
 
-            if(colorize)
+            if(colors[game_coord])
             {
                 SDL_SetTextureColorMod(background, 255, 128, 128);
                 SDL_SetTextureColorMod(tile, 255, 128, 128);
@@ -245,7 +251,9 @@ class GUI
             }
 
             Tower * tower = map->get_tower_at(game_coord);
+
             SDL_SetRenderTarget(ren, background);
+
             if(tower != nullptr)
             {
                 SDL_Texture * texture = load_texture(tower->get_image_string(), ren); 
@@ -264,42 +272,72 @@ class GUI
 
         void fill_screen_tiles(bool colorize)
         {
+            SDL_LockMutex(lock);
+
             for(int i = 0; i < numrows; i++)
             {
                 for(int j = 0; j < numcols; j++)
                 {
-
                     render_game_screen(Coordinate(i, j), colorize);
                 }
             }
+
+            SDL_UnlockMutex(lock);
+
         }
+
+        Tower * last_tower;
 
         void handle_mouse_over_at(Coordinate screen_cord)
         {
+
             Tower * tower = map->get_tower_at(screen_to_game_coord(screen_cord));
+            SDL_LockMutex(lock);
             if(tower != nullptr)
-                std::cout << "Hovered over a tower!" << std::endl;
+            {
+                for(int i = 0; i < numrows; i++)
+                {
+                    for(int j = 0; j < numcols; j++)
+                    {
+                        if(tower->can_attack(Coordinate(i, j)))
+                        {
+
+                            colors[Coordinate(i, j)] = true;
+                        }
+                    }
+                }
+            }
+
+            else 
+            {
+                colors.clear();
+            }
+            
+            SDL_UnlockMutex(lock);
+
+            last_tower = tower;
+
         }
 
-        static int handle_event(void * ptr){
+        static int handle_event(void * ptr)
+        {
              return ((GUI*)ptr)->handle_event();
         }
-
 
         int handle_event()
         {
 
             SDL_Event event;
 
-            bool quit;
+            while(!quit)
+            {
 
-            quit = false;
-
-            while( !quit ){
                 /* Poll for events */
-                while( SDL_PollEvent( &event ) ){
+                while(SDL_PollEvent( &event ))
+                {
                     
-                    switch( event.type ){
+                    switch( event.type )
+                    {
                         /* SDL_QUIT event (window close) */
                         case SDL_QUIT:
                             std::cout << "Tried to quit!" << std::endl;
@@ -319,7 +357,6 @@ class GUI
             }
 
             SDL_Quit();
-
             return 0;
         }  
 
@@ -338,20 +375,28 @@ class GUI
 
         bool create_renderer()
         {    
-            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            ren = SDL_CreateRenderer(win, -1, 0);
             return ren != nullptr;
-
         }
 
         bool create_textures()
         {
+
             background = load_texture("grass_night.jpg", ren);
             tile = load_texture("tile2.png", ren);
-            return background != nullptr || tile != nullptr;
+            SDL_Surface * tile_hover_s = SDL_CreateRGBSurface(0, row_width, row_height, 32, 0, 0, 0, 0);
+            SDL_FillRect(tile_hover_s, nullptr, SDL_MapRGB(tile_hover_s->format, 255, 0, 0));
+            tile_hover = SDL_CreateTextureFromSurface(ren, tile_hover_s);
+            loaded_textures[TOWER_HOVER_SURFACE] = tile_hover;
+            return background != nullptr || tile != nullptr || tile_hover != nullptr;
         }
 
     public:  
 
+       bool has_quit_game()
+        {
+            return quit;
+        }
 
         GUI(int rows, int columns, std::vector<Path *> paths, TDMap * map)
         {
@@ -364,13 +409,15 @@ class GUI
             numcols = columns;
             this->map = map;
             this->paths = paths;
-
+            lock = SDL_CreateMutex();
             /* Doesnt work with short circuiting in an if... wonder why */
+            
             bool completed;
             completed = init();
             completed = completed && create_window();
             completed = completed && create_renderer();
             completed = completed && create_textures();
+
 
             if (!completed)
             {
@@ -378,15 +425,15 @@ class GUI
                 SDL_Quit();
                 exit(1);
             } 
-            fill_screen_tiles(false);
-            SDL_RenderPresent(ren);
-            event_thread = SDL_CreateThread(handle_event, "Hello", this);
 
+            SDL_Thread * event_thread = SDL_CreateThread(handle_event, "hello", this);
+            
+            fill_screen_tiles(false);
+            SDL_RenderPresent(ren); 
         }
 
         std::vector<Animation> tower_anims;
         std::vector<Animation> sprite_anims;
-
 
         // takes pixel coords.
         // pls take care while using.
@@ -433,17 +480,6 @@ class GUI
             }            
         }
 
-        void flash_red()
-        {
-            fill_screen_tiles(true);
-            SDL_RenderPresent(ren);
-            SDL_Delay(300);
-            fill_screen_tiles(false);
-            SDL_RenderPresent(ren);
-
-        }
-
-
         void Update()
         {
             for(int i = 0; i < NUM_ROWS; i++)
@@ -473,6 +509,7 @@ class GUI
                     }
                 }
             }
+
             for(int i = 0; i < ANIMATION_CONSTANT; i++)
             {
                 show_sprite_animations();

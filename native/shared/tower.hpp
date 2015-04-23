@@ -38,12 +38,12 @@ class Tower
 		std::string image_string;
 		Spritesheet * spritesheet;
 		std::vector<Coordinate> cycles;
-		int cost;
 		int damage;
+		int cost;
 		std::vector<Sprite *> attack_sprites;
 
 	public:
-		Tower(Range range, Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate> & cycles, int damage);
+		Tower(Range range, Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate> & cycles, int damage, int cost);
 		Coordinate get_coordinate();
 		void set_attacking(Coordinate);
 		void set_attacking(Sprite *);
@@ -56,6 +56,7 @@ class Tower
         int get_damage();
         void set_damage(int new_damage);
         void Update();
+        int get_cost(){return cost;}
 
 };
 

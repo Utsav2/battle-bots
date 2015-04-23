@@ -70,8 +70,8 @@ bool Range::in(Coordinate a, Coordinate b)
 	return (hdiff + vdiff < manhatten);
 }
 
-Tower::Tower(Range range, Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, int damage = 15)
-	:range(range), location(location), image_string(image_string), spritesheet(spritesheet), cycles(cycles), damage(damage)
+Tower::Tower(Range range, Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, int damage = 15, int cost = 100)
+	:range(range), location(location), image_string(image_string), spritesheet(spritesheet), cycles(cycles), damage(damage), cost(cost)
 {
 }
 

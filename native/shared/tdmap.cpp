@@ -9,6 +9,7 @@ bool Player::still_playing()
 	return is_playing;
 }
 
+
 /*
    Just a constructor.
 */
