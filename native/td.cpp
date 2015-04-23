@@ -122,7 +122,7 @@ class TDGamecore
                     }
                 }
 
-                int range = (rand() % 2) ;
+                int range = (rand() % 6) ;
                 while(--range >= 0)
                     map->add_sprite(sprite_generator(rand() % 300));
         }
@@ -137,6 +137,7 @@ class TDGamecore
                     if(sprite->is_dead())
                     {
                         map->remove_sprite(sprite);
+                        delete sprite;
                         continue;
                     }
 

@@ -1,13 +1,16 @@
 import libtd
 from random import randint as r
-from config_tests import ok
+from config_tests import ok, warning
 a = libtd.Core()
 def buy_random():
 	while a.money >= 100:
 		a.tower(r(0, 9), r(0, 9))
 
-a.tower(3, 3)
-a.tower(6, 7)
+buy_random()
+a.loop(10)
 
-a.loop(20)
-print ok("made gui succesfully")
+if a.money < 0:
+	print warning("negative money")
+
+else:
+	print ok("made gui succesfully")
