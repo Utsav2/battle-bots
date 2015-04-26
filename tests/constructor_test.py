@@ -3,11 +3,16 @@ from random import randint as r
 from config_tests import ok
 a = libtd.Core()
 def buy_random():
-	while a.money >= 100:
-		a.tower(r(0, 9), r(0, 9))
+    if a.money >= 100:
+        x = r(0, 9)
+        y = r(0, 9)
+        a.tower(x,y)
+        print "made a tower at (",x,",",y,")"
+
+buy_random()
 
 a.tower(3, 3)
-a.tower(6, 7)
+a.tower(6, 3)
 
 a.loop(20)
 print ok("made gui succesfully")

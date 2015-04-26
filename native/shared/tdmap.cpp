@@ -1,14 +1,3 @@
-Player::Player(int money = 1000)
-{
-	this->money = money;
-}
-
-
-bool Player::still_playing()
-{
-	return is_playing;
-}
-
 
 /*
    Just a constructor.

@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 #include <array>
-#include <iostream>
 #include <string>
 #include "shared/path_creator.hpp"
 #include "shared/tdmap.hpp"
@@ -15,12 +14,14 @@
 #include <stdlib.h>    
 #include <time.h> 
 #include "shared/spritesheet.hpp" 
+#include "shared/player.hpp"
 #include <pthread.h>
 
 class TDGamecore
 {
     private:
-        int money;
+        Player player;
+        int level_number;
         TDMap * map;
         GUI * gui; 
         Spritesheet zombie;
@@ -51,20 +52,29 @@ class TDGamecore
         {
             Sprite * sprite = new Sprite(paths.at(0) , &zombie, cycles, death_cycles, health);
             return sprite;
-        }
-
+        }  
 
   	public:
 
         int get_money()
         {
-            return money;
+            return player.money;
+        }
+
+        int get_kills()
+        {
+            return player.kills;
+        }
+
+        int get_score()
+        {
+            return player.score;
         }
 
   		bool make_tower_request(int x, int y)
   		{
             Tower * tower = tower_generator(Coordinate(x, y));
-            if(tower->get_cost() > money)
+            if(tower->get_cost() > player.money)
             {   
                 delete tower;
                 return false;
@@ -73,14 +83,13 @@ class TDGamecore
             {
   			   bool retval = map->add_tower(tower);
                if(retval)
-                   money -= tower->get_cost(); 
+                   player.money -= tower->get_cost(); 
                return retval;
             }
   		}
 
-        TDGamecore(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT) : money(1000),
+        TDGamecore(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT) :
                 zombie("zombie.png", Coordinate(128, 128), 8), projectile ("projectile.png", Coordinate(64, 64), 2), simple_range(6)
-
         {
             srand(time(NULL));
 
@@ -93,16 +102,6 @@ class TDGamecore
             gui = new GUI(NUM_ROWS, NUM_COLS, paths, map);
         }
 
-        void reduce_player_score()
-        {
-
-        }
-
-        void increase_player_score()
-        {
-            money += 50;
-        }
-
         void update_sprites()
         {
                 BOOST_FOREACH(Sprite * sprite, map->get_sprites())
@@ -113,18 +112,21 @@ class TDGamecore
                         if(sprite->is_out_of_map())
                         {
                             map->remove_sprite(sprite);
-                            reduce_player_score();
+                            player.score-=1;
                         }
                     }
                     else
                     {
-                        increase_player_score();
+                        player.money+=50;
+                        player.score+=1;
+                        player.kills++;
+                        level_number = player.kills/10;
                     }
                 }
 
                 int range = (rand() % 2) ;
                 while(--range >= 0)
-                    map->add_sprite(sprite_generator(rand() % 300));
+                    map->add_sprite(sprite_generator(100 + level_number * 50));
         }
 
         void game_loop(int number_of_times = 1)
@@ -157,8 +159,6 @@ class TDGamecore
                 update_sprites();
             }
         }
-
-
 };
 
 using namespace boost::python;
@@ -170,5 +170,7 @@ BOOST_PYTHON_MODULE(libtd)
     class_<TDGamecore>("Core", init<>())
     .def("loop", &TDGamecore::game_loop, loop_overloads(args("number_of_times")))
     .def("tower", &TDGamecore::make_tower_request)
-    .def_readonly("money", &TDGamecore::get_money);
+    .def_readonly("money", &TDGamecore::get_money)
+    .def_readonly("kills", &TDGamecore::get_kills)
+    .def_readonly("score", &TDGamecore::get_score);
 }

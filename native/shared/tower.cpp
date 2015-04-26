@@ -71,7 +71,13 @@ bool Range::in(Coordinate a, Coordinate b)
 }
 
 Tower::Tower(Range range, Coordinate location, std::string image_string, Spritesheet * spritesheet, std::vector<Coordinate>& cycles, int damage = 15, int cost = 100)
-	:range(range), location(location), image_string(image_string), spritesheet(spritesheet), cycles(cycles), damage(damage), cost(cost)
+	:range(range), 
+	location(location), 
+	image_string(image_string), 
+	spritesheet(spritesheet), 
+	cycles(cycles), 
+	damage(damage), 
+	cost(cost)
 {
 }
 
@@ -130,7 +136,7 @@ int Tower::get_damage()
 
 void Tower::set_damage(int damage)
 {
-	assert(damage > 0);
+	assert(damage >= 0);
 	this->damage = damage;
 }
 

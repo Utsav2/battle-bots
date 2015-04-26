@@ -6,19 +6,6 @@
 #include "sizes.h"
 #include "sprite.hpp"
 
-class Player
-{
-
-	private:
-		bool is_playing;
-		int money;
-
-	public:
-		Player(int);
-		bool still_playing();
-
-};
-
 class TDMap
 {
 	private:
