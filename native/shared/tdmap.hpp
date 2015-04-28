@@ -27,6 +27,7 @@ class TDMap
 		bool add_sprite(Sprite * sprite);
 		void remove_sprite(Sprite * sprite);
 		void update_towers();
+		size_t get_number_of_sprites(){return sprites.size();}
 };
 
 #include "tdmap.cpp"

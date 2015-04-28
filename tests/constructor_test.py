@@ -14,5 +14,5 @@ buy_random()
 a.tower(3, 3)
 a.tower(6, 3)
 
-a.loop(20)
+a.loop(5)
 print ok("made gui succesfully")
