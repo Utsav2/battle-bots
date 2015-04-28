@@ -5,3 +5,7 @@ for filename in $DIR/tests/*.py; do
 	python "$filename" -v
 	echo -e '----------------------------------------' 
 done
+for filename in $DIR/tests/game_tests/*.py; do
+	python $DIR/python/td.py "$filename" -v
+	echo -e '----------------------------------------' 
+done

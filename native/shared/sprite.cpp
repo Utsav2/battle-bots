@@ -48,7 +48,7 @@ std::vector<Coordinate>& Sprite::get_sscords()
     if(dead)
         return dead_cycles;
     else
-	   return cycles;
+        return cycles;
 }
 
 void Sprite::set_attacked()

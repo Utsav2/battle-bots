@@ -37,6 +37,7 @@ class Sprite
         bool is_dead(){return dead;}
         void set_random_position(Coordinate coord);
         Coordinate get_offset();
+        int get_health(){return health;}
 
 
 };

@@ -1,5 +1,6 @@
 #include "SDL.h"   
 #include "SDL_image.h"   
+#include "SDL_ttf.h"
 #include <iostream>  
 #include <assert.h>
 #include "shared/path_creator.hpp"
@@ -14,6 +15,7 @@
 
 
 #define TOWER_HOVER_SURFACE "tower_hover"
+#define SIDEBAR_OFFSET 1
 
 class GUI
 {
@@ -117,8 +119,13 @@ class GUI
         SDL_Thread * event_thread;
         bool quit;
         SDL_Texture * tile_hover;
+        SDL_Texture * sidebar;
         SDL_mutex *lock;
         SDL_cond *cond;
+        TTF_Font * font; 
+        int previous_score;
+        int actual_width;
+
 
 
         void logSDLError(std::ostream &os, const std::string &msg)
@@ -195,6 +202,11 @@ class GUI
             render_texture(tex, ren, nullptr, coordinate);
         }
 
+        void render_texture(SDL_Texture * tex, SDL_Renderer * ren, Coordinate coordinate, int width, int height)
+        {
+            render_texture(tex, ren, nullptr, coordinate.x, coordinate.y, width, height);
+        }
+
         void render_texture(SDL_Texture * tex, SDL_Renderer * ren, SDL_Rect * rect, Coordinate coordinate)
         {
             render_texture(tex, ren, rect, coordinate.x, coordinate.y, row_width, row_height);
@@ -230,7 +242,7 @@ class GUI
 
             Coordinate screen_cord = game_to_screen_coord(game_coord);
 
-            if(colors[game_coord])
+            if(false)
             {
                 SDL_SetTextureColorMod(background, 255, 128, 128);
                 SDL_SetTextureColorMod(tile, 255, 128, 128);
@@ -285,6 +297,22 @@ class GUI
 
             SDL_UnlockMutex(lock);
 
+        }
+
+        void render_sidebar()
+        {
+            for(int i = numrows; i < numrows + SIDEBAR_OFFSET; i++)
+            {
+                for(int j = 0; j < numcols; j++)
+                {
+                    render_sidebar(game_to_screen_coord(i, j));
+                }
+            }
+        }
+
+        void render_sidebar(Coordinate screen_cord)
+        {
+            render_texture(sidebar, ren, screen_cord, actual_width, row_height);
         }
 
         Tower * last_tower;
@@ -385,11 +413,58 @@ class GUI
 
             background = load_texture("grass_night.jpg", ren);
             tile = load_texture("tile2.png", ren);
+            sidebar = load_texture("dark.png", ren);
             SDL_Surface * tile_hover_s = SDL_CreateRGBSurface(0, row_width, row_height, 32, 0, 0, 0, 0);
             SDL_FillRect(tile_hover_s, nullptr, SDL_MapRGB(tile_hover_s->format, 255, 0, 0));
             tile_hover = SDL_CreateTextureFromSurface(ren, tile_hover_s);
             loaded_textures[TOWER_HOVER_SURFACE] = tile_hover;
             return background != nullptr || tile != nullptr || tile_hover != nullptr;
+        }
+
+        bool create_font()
+        {
+            if( TTF_Init() == -1 )
+            {
+                return false;    
+            }
+
+            std::string res_path = GRAPHICS_PATH;
+            std::string extra = "Lato-Regular.ttf";
+
+            font = TTF_OpenFont((res_path + extra).c_str() , 28 );
+            
+            if(font == nullptr)
+            {
+                return false;
+            }  
+
+            previous_score = -1;
+
+            return true;
+        }
+
+        SDL_Texture * get_font_texture(const std::string &message, SDL_Color color)
+        {
+
+            if(loaded_textures.find(message) != loaded_textures.end())
+                return loaded_textures[message];
+
+            SDL_Surface * surf = TTF_RenderText_Solid(font, message.c_str(), color);
+            if (surf == nullptr)
+            {
+                logSDLError(std::cout, "TTF_RenderText");
+                return nullptr;
+            }
+            SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, surf);
+
+            if (texture == nullptr)
+            {
+                logSDLError(std::cout, "CreateTexture");
+            }
+
+            loaded_textures[message] = texture;
+
+            return texture;
         }
 
     public:  
@@ -404,7 +479,9 @@ class GUI
 
             assert(rows > 0 && columns > 0 && paths.size() != 0 && map != nullptr);
 
-            row_width = DEFAULT_WIDTH/rows;
+            actual_width = DEFAULT_WIDTH/rows;
+            //row_width = (rows * actual_width - SIDEBAR_OFFSET * actual_width)/rows; 
+            row_width = actual_width;
             row_height = DEFAULT_HEIGHT/columns;
             numrows = rows;
             numcols = columns;
@@ -418,6 +495,7 @@ class GUI
             completed = completed && create_window();
             completed = completed && create_renderer();
             completed = completed && create_textures();
+            completed = completed && create_font();
 
 
             if (!completed)
@@ -498,6 +576,18 @@ class GUI
 
         void Update()
         {
+            
+            SDL_Color red = {255, 0, 0, 0};
+            int score = map->get_number_of_sprites();
+            if(score != previous_score)
+            {
+                render_sidebar();
+                SDL_Texture * tex = get_font_texture(std::to_string(score), red);
+                Coordinate right_top = game_to_screen_coord(Coordinate(numrows, 0));
+                render_texture(tex, ren, right_top);
+            }
+            previous_score = score;
+
             SDL_LockMutex(lock);
             for(int i = 0; i < NUM_ROWS; i++)
             {
@@ -507,7 +597,8 @@ class GUI
                     {
                         SDL_Texture * sprite_texture = load_sprite_texture(s->get_spritesheet()->get_file_name(), s->is_attacked());
                         Coordinate previous_cord = game_to_screen_coord(s->get_previous_position());
-                        set_up_sprite_animation(s, sprite_texture, previous_cord, game_to_screen_coord(s->get_coordinate()), true, s->get_sscords(), s->get_spritesheet()->get_box_size(), s->get_spritesheet()->get_frame_rate(), -1);
+                        Coordinate next_cord = game_to_screen_coord(s->get_coordinate());
+                        set_up_sprite_animation(s, sprite_texture, previous_cord, next_cord, true, s->get_sscords(), s->get_spritesheet()->get_box_size(), s->get_spritesheet()->get_frame_rate(), -1);                        
                     }
 
                     Tower * tower = map->get_tower_at(i, j);
@@ -527,6 +618,7 @@ class GUI
                     }
                 }
             }
+
             SDL_UnlockMutex(lock);
             for(int i = 0; i < ANIMATION_CONSTANT; i++)
             {
@@ -534,7 +626,6 @@ class GUI
                 show_tower_animations();
                 SDL_RenderPresent(ren);
             }
-
             SDL_RenderPresent(ren);
             clear_animations();
         }

@@ -132,7 +132,7 @@ class TB_core
  */
 void TB_player::do_turn(int hand)
 {
-            this->core->inform_turn_done(this->p_id, hand);
+    this->core->inform_turn_done(this->p_id, hand);
 }
 
 using namespace boost::python;
