@@ -100,8 +100,14 @@ class TDGamecore
                 zombie("zombie.png", Coordinate(128, 128), 8), projectile ("projectile.png", Coordinate(64, 64), 2), simple_range(6)
         {
             srand(time(NULL));
+            Coordinate initial(-1, NUM_COLS/2);
+            Coordinate mid(NUM_ROWS/2, 0);
+            Coordinate second_mid(NUM_ROWS/2, NUM_COLS - 2);
+            Coordinate final(NUM_ROWS, NUM_COLS/2);
+            Path path = generate_linear_path(initial, mid);  
+            path.append_path(generate_linear_path(mid, second_mid));              
+            path.append_path(generate_linear_path(second_mid, final));
 
-            Path path(NUM_ROWS, NUM_COLS);
             paths.push_back(path);
             map = new TDMap(NUM_ROWS, NUM_COLS, paths);
             set_up();
@@ -136,6 +142,9 @@ class TDGamecore
                 while(--range >= 0)
                     map->add_sprite(sprite_generator(100 + level_number * 50));
         }
+
+
+        /* when the user calls the game loop */
 
         void game_loop(int number_of_times = 1)
         {
@@ -183,7 +192,7 @@ BOOST_PYTHON_MODULE(libtd)
     .def("tower", &TDGamecore::make_tower_request)
     .def_readonly("money", &TDGamecore::get_money)
     .def_readonly("kills", &TDGamecore::get_kills)
-    .def_readonly("score", &TDGamecore::get_score);
+    .def_readonly("score", &TDGamecore::get_score)
     .def_readonly("round", &TDGamecore::get_game_number);
 
 }

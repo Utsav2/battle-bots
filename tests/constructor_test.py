@@ -9,9 +9,14 @@ def buy_random():
         a.tower(x,y)
         print "made a tower at (",x,",",y,")"
 
+#buy a random tower
 buy_random()
+#buy tower at specific coordinates
 a.tower(3, 3)
 a.tower(6, 3)
-
+#print scores, round numbers
+print "score is ", a.score
+print "round number is", a.round 
 a.loop(5)
 print ok("made gui succesfully")
+	

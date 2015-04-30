@@ -10,6 +10,7 @@ class Path
 	private:
         std::vector<Coordinate> coords;
 	public:
+		Path();
         Path(std::vector<Coordinate> coords);
         Path(int, int);
 		void add_coords(int x, int y);
@@ -18,6 +19,8 @@ class Path
 		bool in(int x, int y);
         bool in(Coordinate coord);
         Coordinate get_coordinate(int index);
+        void append_path(Path);
+        static Path generate_linear_path(Coordinate, Coordinate);
 };
 #include "path_creator.cpp"
 #endif
