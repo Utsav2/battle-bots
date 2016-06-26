@@ -413,7 +413,7 @@ class GUI
 
             background = load_texture("grass_night.jpg", ren);
             tile = load_texture("tile2.png", ren);
-            sidebar = load_texture("dark.png", ren);
+            sidebar = load_texture("tile.png", ren);
             SDL_Surface * tile_hover_s = SDL_CreateRGBSurface(0, row_width, row_height, 32, 0, 0, 0, 0);
             SDL_FillRect(tile_hover_s, nullptr, SDL_MapRGB(tile_hover_s->format, 255, 0, 0));
             tile_hover = SDL_CreateTextureFromSurface(ren, tile_hover_s);
